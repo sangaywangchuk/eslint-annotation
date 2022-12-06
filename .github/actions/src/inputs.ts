@@ -14,6 +14,7 @@ export default {
   // token: githubToken,
   sha: sha,
   ownership,
+  githubWorkSpace: process.env.GITHUB_WORKSPACE as string,
   githubContext: github.context,
   owner: github.context.repo.owner,
   repo: github.context.repo.repo,

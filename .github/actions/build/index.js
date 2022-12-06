@@ -13642,6 +13642,127 @@
       /***/
     },
 
+    /***/ 185: /***/ function (__unused_webpack_module, exports, __nccwpck_require__) {
+      'use strict';
+
+      var __importDefault =
+        (this && this.__importDefault) ||
+        function (mod) {
+          return mod && mod.__esModule ? mod : { default: mod };
+        };
+      Object.defineProperty(exports, '__esModule', { value: true });
+      const inputs_1 = __importDefault(__nccwpck_require__(7063));
+      const { sha, githubContext, owner, repo, checkName, eslintReportFile, githubWorkSpace } = inputs_1.default;
+      /**
+       * Analyzes an ESLint report JS object and returns a report
+       * @param files a JavaScript representation of an ESLint JSON report
+       */
+      function getAnalyzedReport(files) {
+        // Create markdown placeholder
+        let markdownText = '';
+        // Start the error and warning counts at 0
+        let errorCount = 0;
+        let warningCount = 0;
+        // Create text string placeholders
+        let errorText = '';
+        let warningText = '';
+        // Create an array for annotations
+        const annotations = [];
+        // Loop through each file
+        for (const file of files) {
+          // Get the file path and any warning/error messages
+          const { filePath, messages } = file;
+          console.log(`Analyzing ${filePath}`);
+          // Skip files with no error or warning messages
+          if (!messages.length) {
+            continue;
+          }
+          /**
+           * Increment the error and warning counts by
+           * the number of errors/warnings for this file
+           * and note files in the PR
+           */
+          errorCount += file.errorCount;
+          warningCount += file.warningCount;
+          // Loop through all the error/warning messages for the file
+          for (const lintMessage of messages) {
+            // Pull out information about the error/warning message
+            const { line, column, severity, ruleId, message } = lintMessage;
+            // If there's no rule ID (e.g. an ignored file warning), skip
+            if (!ruleId) continue;
+            const endLine = lintMessage.endLine ? lintMessage.endLine : line;
+            const endColumn = lintMessage.endColumn ? lintMessage.endColumn : column;
+            // Check if it a warning or error
+            const isWarning = severity < 2;
+            // Trim the absolute path prefix from the file path
+            const filePathTrimmed = filePath.replace(`${githubWorkSpace}/`, '');
+            /**
+             * Create a GitHub annotation object for the error/warning
+             * See https://developer.github.com/v3/checks/runs/#annotations-object
+             */
+            const annotation = {
+              path: filePathTrimmed,
+              start_line: line,
+              end_line: endLine,
+              annotation_level: isWarning ? 'warning' : 'failure',
+              message: `[${ruleId}] ${message}`,
+            };
+            /**
+             * Start and end column can only be added to the
+             * annotation if start_line and end_line are equal
+             */
+            if (line === endLine) {
+              annotation.start_column = column;
+              if (endColumn !== null) {
+                annotation.end_column = endColumn;
+              }
+            }
+            // Add the annotation object to the array
+            annotations.push(annotation);
+            /**
+             * Develop user-friendly markdown message
+             * text for the error/warning
+             */
+            const link = `https://github.com/${owner}/${repo}/blob/${sha}/${filePathTrimmed}#L${line}:L${endLine}`;
+            let messageText = `### [\`${filePathTrimmed}\` line \`${line.toString()}\`](${link})\n`;
+            messageText += '- Start Line: `' + line.toString() + '`\n';
+            messageText += '- End Line: `' + endLine.toString() + '`\n';
+            messageText += '- Message: ' + message + '\n';
+            messageText += '  - From: [`' + ruleId + '`]\n';
+            // Add the markdown text to the appropriate placeholder
+            if (isWarning) {
+              warningText += messageText;
+            } else {
+              errorText += messageText;
+            }
+          }
+        }
+        // If there is any markdown error text, add it to the markdown output
+        if (errorText.length) {
+          markdownText += '## ' + errorCount.toString() + ' Error(s):\n';
+          markdownText += errorText + '\n';
+        }
+        // If there is any markdown warning text, add it to the markdown output
+        if (warningText.length) {
+          markdownText += '## ' + warningCount.toString() + ' Warning(s):\n';
+          markdownText += warningText + '\n';
+        }
+        let success = errorCount === 0;
+        // Return the ESLint report analysis
+        return {
+          errorCount,
+          warningCount,
+          markdown: markdownText,
+          success,
+          summary: `${errorCount} ESLint error(s) and ${warningCount} ESLint warning(s) found`,
+          annotations,
+        };
+      }
+      exports['default'] = getAnalyzedReport;
+
+      /***/
+    },
+
     /***/ 1253: /***/ function (__unused_webpack_module, exports, __nccwpck_require__) {
       'use strict';
 
@@ -13754,6 +13875,7 @@
       const core = __importStar(__nccwpck_require__(2186));
       const eslintReportJsonToObject_1 = __importDefault(__nccwpck_require__(1253));
       const inputs_1 = __importDefault(__nccwpck_require__(7063));
+      const analyzedReport_1 = __importDefault(__nccwpck_require__(185));
       (() =>
         __awaiter(void 0, void 0, void 0, function* () {
           /**
@@ -13761,10 +13883,17 @@
            */
           try {
             const { sha, githubContext, owner, repo, checkName, eslintReportFile } = inputs_1.default;
-            const parsedEslintReportJs = (0, eslintReportJsonToObject_1.default)(eslintReportFile);
-            core.debug(`Starting analysis of the ESLint report json to javascript object`);
-            console.log('report2', parsedEslintReportJs);
             console.log('inputs', inputs_1.default);
+            const parsedEslintReportJs = (0, eslintReportJsonToObject_1.default)(eslintReportFile);
+            console.log('parsedEslintReport: ', parsedEslintReportJs);
+            const analyzedReport = (0, analyzedReport_1.default)(parsedEslintReportJs);
+            console.log('analyzedReport: ', analyzedReport);
+            const annotations = analyzedReport.annotations;
+            console.log('annotations: ', annotations);
+            const conclusion = analyzedReport.success ? 'success' : 'failure';
+            console.log('conclusion: ', conclusion);
+            console.log('summery: ', analyzedReport.summary);
+            core.debug(`Starting analysis of the ESLint report json to javascript object`);
             core.notice('github action');
           } catch (e) {
             const error = e;
@@ -13834,6 +13963,7 @@
         // token: githubToken,
         sha: sha,
         ownership,
+        githubWorkSpace: process.env.GITHUB_WORKSPACE,
         githubContext: github.context,
         owner: github.context.repo.owner,
         repo: github.context.repo.repo,
