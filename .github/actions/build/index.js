@@ -13899,6 +13899,8 @@
               yield octokit.rest.checks.update(
                 Object.assign(Object.assign({}, ownership), {
                   check_run_id: checkId,
+                  head_sha: sha,
+                  name: checkName,
                   status: 'in_progress',
                   output: {
                     title: checkName,
@@ -13931,6 +13933,8 @@
             const { data } = yield octokit.rest.checks.create(
               Object.assign(Object.assign({}, ownership), {
                 conclusion,
+                head_sha: sha,
+                name: checkName,
                 completed_at: formatDate(),
                 status: 'completed',
                 check_run_id: checkId,

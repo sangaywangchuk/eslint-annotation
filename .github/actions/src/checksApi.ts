@@ -58,6 +58,8 @@ export const updateCheckRun = async (
       await octokit.rest.checks.update({
         ...ownership,
         check_run_id: checkId,
+        head_sha: sha,
+        name: checkName,
         status: 'in_progress',
         output: {
           title: checkName,
@@ -93,6 +95,8 @@ export const closeStatusCheck = async (
     const { data } = await octokit.rest.checks.create({
       ...ownership,
       conclusion,
+      head_sha: sha,
+      name: checkName,
       completed_at: formatDate(),
       status: 'completed',
       check_run_id: checkId,
