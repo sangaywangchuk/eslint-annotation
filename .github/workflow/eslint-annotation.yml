@@ -10,9 +10,9 @@ on:
   workflow_dispatch:
 
 permissions:
-  checks: write
-  statuses: write
-  
+  checks: read | write
+  statuses: read | write
+
 jobs:
   lint:
     runs-on: [ubuntu-latest]
