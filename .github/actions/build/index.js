@@ -13928,15 +13928,17 @@
       const closeStatusCheck = (octokit, conclusion, checkId, summary) =>
         __awaiter(void 0, void 0, void 0, function* () {
           try {
+            console.log('conclusion: ', conclusion);
+            console.log('checkId: ', checkId);
             // https://developer.github.com/v3/checks/runs/#create-a-check-run
             // https://octokit.github.io/rest.js/v16#checks-create
             const { data } = yield octokit.rest.checks.create(
               Object.assign(Object.assign({}, ownership), {
-                conclusion,
                 head_sha: sha,
                 name: checkName,
-                completed_at: formatDate(),
                 status: 'completed',
+                conclusion,
+                completed_at: formatDate(),
                 check_run_id: checkId,
                 output: {
                   title: checkName,
@@ -14083,8 +14085,6 @@
             const checkId = yield (0, checksApi_1.createStatusCheck)(octokit);
             yield (0, checksApi_1.updateCheckRun)(octokit, checkId, analyzedReport.annotations);
             yield (0, checksApi_1.closeStatusCheck)(octokit, conclusion, checkId, analyzedReport.summary);
-            console.log('checkId', checkId);
-            console.log('octokit', octokit);
           } catch (e) {
             const error = e;
             core.debug(error.toString());

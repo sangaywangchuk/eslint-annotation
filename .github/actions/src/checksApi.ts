@@ -90,15 +90,17 @@ export const closeStatusCheck = async (
   summary: string
 ): Promise<void> => {
   try {
+    console.log('conclusion: ', conclusion);
+    console.log('checkId: ', checkId);
     // https://developer.github.com/v3/checks/runs/#create-a-check-run
     // https://octokit.github.io/rest.js/v16#checks-create
     const { data } = await octokit.rest.checks.create({
       ...ownership,
-      conclusion,
       head_sha: sha,
       name: checkName,
-      completed_at: formatDate(),
       status: 'completed',
+      conclusion,
+      completed_at: formatDate(),
       check_run_id: checkId,
       output: {
         title: checkName,

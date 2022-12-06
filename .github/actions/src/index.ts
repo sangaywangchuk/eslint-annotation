@@ -18,9 +18,6 @@ import { createStatusCheck, updateCheckRun, closeStatusCheck } from './checksApi
     await updateCheckRun(octokit, checkId, analyzedReport.annotations);
 
     await closeStatusCheck(octokit, conclusion, checkId, analyzedReport.summary);
-
-    console.log('checkId', checkId);
-    console.log('octokit', octokit);
   } catch (e) {
     const error = e as Error;
     core.debug(error.toString());
