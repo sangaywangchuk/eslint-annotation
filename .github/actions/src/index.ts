@@ -9,7 +9,7 @@ import getAnalyzedReport from './analyzedReport';
    */
 
   try {
-    const { sha, githubContext, owner, repo, checkName, eslintReportFile } = inputs;
+    const { token, sha, githubContext, owner, repo, checkName, eslintReportFile } = inputs;
     console.log('inputs', inputs);
     const parsedEslintReportJs = eslintJsonReportToJsObject(eslintReportFile);
     console.log('parsedEslintReport: ', parsedEslintReportJs);
@@ -22,6 +22,8 @@ import getAnalyzedReport from './analyzedReport';
     console.log('summery: ', analyzedReport.summary);
     core.debug(`Starting analysis of the ESLint report json to javascript object`);
     core.notice('github action');
+    const octokit = github.getOctokit(token);
+    console.log('octokit: ', octokit);
   } catch (e) {
     const error = e as Error;
     core.debug(error.toString());

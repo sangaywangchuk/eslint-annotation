@@ -1,7 +1,7 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 
-// const githubToken = core.getInput('repo-token', { required: true });
+const githubToken = core.getInput('token', { required: true });
 const ownership = {
   owner: github.context.repo.owner,
   repo: github.context.repo.repo,
@@ -11,7 +11,7 @@ const checkName = core.getInput('check-name') || 'ESLint Annotation Report Analy
 const eslintReportFile = core.getInput('eslint-report-json', { required: true });
 
 export default {
-  // token: githubToken,
+  token: githubToken,
   sha: sha,
   ownership,
   githubWorkSpace: process.env.GITHUB_WORKSPACE as string,

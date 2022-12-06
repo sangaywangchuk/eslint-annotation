@@ -13873,6 +13873,7 @@
         };
       Object.defineProperty(exports, '__esModule', { value: true });
       const core = __importStar(__nccwpck_require__(2186));
+      const github = __importStar(__nccwpck_require__(5438));
       const eslintReportJsonToObject_1 = __importDefault(__nccwpck_require__(1253));
       const inputs_1 = __importDefault(__nccwpck_require__(7063));
       const analyzedReport_1 = __importDefault(__nccwpck_require__(185));
@@ -13882,7 +13883,7 @@
            * get User inputs
            */
           try {
-            const { sha, githubContext, owner, repo, checkName, eslintReportFile } = inputs_1.default;
+            const { token, sha, githubContext, owner, repo, checkName, eslintReportFile } = inputs_1.default;
             console.log('inputs', inputs_1.default);
             const parsedEslintReportJs = (0, eslintReportJsonToObject_1.default)(eslintReportFile);
             console.log('parsedEslintReport: ', parsedEslintReportJs);
@@ -13895,6 +13896,8 @@
             console.log('summery: ', analyzedReport.summary);
             core.debug(`Starting analysis of the ESLint report json to javascript object`);
             core.notice('github action');
+            const octokit = github.getOctokit(token);
+            console.log('octokit: ', octokit);
           } catch (e) {
             const error = e;
             core.debug(error.toString());
@@ -13951,7 +13954,7 @@
       Object.defineProperty(exports, '__esModule', { value: true });
       const core = __importStar(__nccwpck_require__(2186));
       const github = __importStar(__nccwpck_require__(5438));
-      // const githubToken = core.getInput('repo-token', { required: true });
+      const githubToken = core.getInput('token', { required: true });
       const ownership = {
         owner: github.context.repo.owner,
         repo: github.context.repo.repo,
@@ -13960,7 +13963,7 @@
       const checkName = core.getInput('check-name') || 'ESLint Annotation Report Analysis';
       const eslintReportFile = core.getInput('eslint-report-json', { required: true });
       exports['default'] = {
-        // token: githubToken,
+        token: githubToken,
         sha: sha,
         ownership,
         githubWorkSpace: process.env.GITHUB_WORKSPACE,
