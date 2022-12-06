@@ -13759,11 +13759,12 @@
           /**
            * get User inputs
            */
-          const { sha, githubContext, owner, repo, checkName, eslintReportFile } = inputs_1.default;
-          const parsedEslintReportJs = (0, eslintReportJsonToObject_1.default)(eslintReportFile);
-          core.debug(`Starting analysis of the ESLint report json to javascript object`);
-          console.log('report2', parsedEslintReportJs);
           try {
+            const { sha, githubContext, owner, repo, checkName, eslintReportFile } = inputs_1.default;
+            const parsedEslintReportJs = (0, eslintReportJsonToObject_1.default)(eslintReportFile);
+            core.debug(`Starting analysis of the ESLint report json to javascript object`);
+            console.log('report2', parsedEslintReportJs);
+            console.log('inputs', inputs_1.default);
             core.notice('github action');
           } catch (e) {
             const error = e;
