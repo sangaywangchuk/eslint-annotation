@@ -13,6 +13,7 @@ import inputs from './inputs';
     const parsedEslintReportJs = eslintJsonReportToJsObject(eslintReportFile);
     core.debug(`Starting analysis of the ESLint report json to javascript object`);
     console.log('report2', parsedEslintReportJs);
+    console.log('inputs', inputs)
     core.notice('github action');
   } catch (e) {
     const error = e as Error;
