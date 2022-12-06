@@ -1,0 +1,40 @@
+name: Lint Check
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ '**' ]
+    
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  lint:
+    env:
+    runs-on: [ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v2.5.1
+        with:
+          node-version: 16.13.0
+      - name: Restore Cache
+        id: 'yarn-cache'
+        uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: | 
+            ${{ runner.os }}-modules-
+      - name: Install dependencies
+        if: steps.yarn-cache.outputs.cache-hit != 'true'
+        run: yarn install 
+      - name: Generate eslint Report
+        run: yarn lint:report
+        continue-on-error: true
+      - name: Annotate Eslint on PR files
+        uses: ./.github/actions/
+        with: 
+          eslint-report-json: 'eslint-report.json'
