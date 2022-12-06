@@ -13766,6 +13766,46 @@
     /***/ 4999: /***/ function (__unused_webpack_module, exports, __nccwpck_require__) {
       'use strict';
 
+      var __createBinding =
+        (this && this.__createBinding) ||
+        (Object.create
+          ? function (o, m, k, k2) {
+              if (k2 === undefined) k2 = k;
+              var desc = Object.getOwnPropertyDescriptor(m, k);
+              if (!desc || ('get' in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+                desc = {
+                  enumerable: true,
+                  get: function () {
+                    return m[k];
+                  },
+                };
+              }
+              Object.defineProperty(o, k2, desc);
+            }
+          : function (o, m, k, k2) {
+              if (k2 === undefined) k2 = k;
+              o[k2] = m[k];
+            });
+      var __setModuleDefault =
+        (this && this.__setModuleDefault) ||
+        (Object.create
+          ? function (o, v) {
+              Object.defineProperty(o, 'default', { enumerable: true, value: v });
+            }
+          : function (o, v) {
+              o['default'] = v;
+            });
+      var __importStar =
+        (this && this.__importStar) ||
+        function (mod) {
+          if (mod && mod.__esModule) return mod;
+          var result = {};
+          if (mod != null)
+            for (var k in mod)
+              if (k !== 'default' && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+          __setModuleDefault(result, mod);
+          return result;
+        };
       var __awaiter =
         (this && this.__awaiter) ||
         function (thisArg, _arguments, P, generator) {
@@ -13803,8 +13843,9 @@
           return mod && mod.__esModule ? mod : { default: mod };
         };
       Object.defineProperty(exports, '__esModule', { value: true });
-      exports.createStatusCheck = void 0;
+      exports.closeStatusCheck = exports.updateCheckRun = exports.createStatusCheck = void 0;
       const inputs_1 = __importDefault(__nccwpck_require__(7063));
+      const core = __importStar(__nccwpck_require__(2186));
       const { sha, ownership, checkName } = inputs_1.default;
       /**
        * Create a new GitHub check run
@@ -13821,10 +13862,6 @@
               head_sha: sha,
               status: 'in_progress',
               name: checkName,
-              /**
-               * The check run API is still in beta and the developer preview must be opted into
-               * See https://developer.github.com/changes/2018-05-07-new-checks-api-public-beta/
-               */
               mediaType: {
                 previews: ['antiope'],
               },
@@ -13833,6 +13870,83 @@
           return data.id;
         });
       exports.createStatusCheck = createStatusCheck;
+      /**
+       * Add annotations to an existing GitHub check run
+       * @param annotations an array of annotation objects. See https://developer.github.com/v3/checks/runs/#annotations-object-1
+       * @param checkId the ID of the check run to add annotations to
+       */
+      const updateCheckRun = (octokit, checkId, annotations) =>
+        __awaiter(void 0, void 0, void 0, function* () {
+          /**
+           * Update the GitHub check with the
+           * annotations from the report analysis.
+           *
+           * If there are more than 50 annotations
+           * we need to make multiple API requests
+           * to avoid rate limiting errors
+           *
+           * See https://developer.github.com/v3/checks/runs/#output-object-1
+           */
+          const numberOfAnnotations = annotations.length;
+          const batchSize = 50;
+          const numBatches = Math.ceil(numberOfAnnotations / batchSize);
+          const checkUpdatePromises = [];
+          for (let batch = 1; batch <= numBatches; batch++) {
+            const batchMessage = `Found ${numberOfAnnotations} ESLint errors and warnings, processing batch ${batch} of ${numBatches}...`;
+            console.log(batchMessage);
+            const annotationBatch = annotations.splice(0, batchSize);
+            try {
+              yield octokit.rest.checks.update(
+                Object.assign(Object.assign({}, ownership), {
+                  check_run_id: checkId,
+                  status: 'in_progress',
+                  output: {
+                    title: checkName,
+                    summary: batchMessage,
+                    annotations: annotationBatch,
+                  },
+                  /**
+                   * The check run API is still in beta and the developer preview must be opted into
+                   * See https://developer.github.com/changes/2018-05-07-new-checks-api-public-beta/
+                   */
+                  mediaType: {
+                    previews: ['antiope'],
+                  },
+                })
+              );
+              console.log('batch: ', batch);
+            } catch (err) {
+              const error = err;
+              core.debug(error.toString());
+              core.setFailed(error.message + 'Annotation updated failed');
+            }
+          }
+        });
+      exports.updateCheckRun = updateCheckRun;
+      const closeStatusCheck = (octokit, conclusion, checkId, summary) =>
+        __awaiter(void 0, void 0, void 0, function* () {
+          try {
+            // https://developer.github.com/v3/checks/runs/#create-a-check-run
+            // https://octokit.github.io/rest.js/v16#checks-create
+            const { data } = yield octokit.rest.checks.create(
+              Object.assign(Object.assign({}, ownership), {
+                conclusion,
+                completed_at: formatDate(),
+                status: 'completed',
+                check_run_id: checkId,
+                output: {
+                  title: checkName,
+                  summary: summary,
+                },
+              })
+            );
+          } catch (err) {
+            const error = err;
+            core.debug(error.toString());
+            core.setFailed(error.message + 'Annotation updated failed');
+          }
+        });
+      exports.closeStatusCheck = closeStatusCheck;
 
       /***/
     },
@@ -13954,22 +14068,17 @@
       const checksApi_1 = __nccwpck_require__(4999);
       (() =>
         __awaiter(void 0, void 0, void 0, function* () {
-          /**
-           * get User inputs
-           */
           try {
-            const { token, sha, githubContext, owner, repo, checkName, eslintReportFile } = inputs_1.default;
-            console.log('inputs', inputs_1.default);
+            core.debug(`Starting analysis of the ESLint report json to javascript object`);
+            const { token, eslintReportFile } = inputs_1.default;
             const parsedEslintReportJs = (0, eslintReportJsonToObject_1.default)(eslintReportFile);
             const analyzedReport = (0, analyzedReport_1.default)(parsedEslintReportJs);
-            const annotations = analyzedReport.annotations;
-            console.log('annotations: ', annotations);
+            console.log('analyzedReport: ', analyzedReport);
             const conclusion = analyzedReport.success ? 'success' : 'failure';
-            console.log('conclusion: ', conclusion);
-            console.log('summery: ', analyzedReport.summary);
-            core.debug(`Starting analysis of the ESLint report json to javascript object`);
-            const octokit = github.getOctokit(inputs_1.default.token);
+            const octokit = github.getOctokit(token);
             const checkId = yield (0, checksApi_1.createStatusCheck)(octokit);
+            yield (0, checksApi_1.updateCheckRun)(octokit, checkId, analyzedReport.annotations);
+            yield (0, checksApi_1.closeStatusCheck)(octokit, conclusion, checkId, analyzedReport.summary);
             console.log('checkId', checkId);
             console.log('octokit', octokit);
           } catch (e) {
