@@ -1,6 +1,6 @@
 import type { ESLintReport, ChecksUpdateParamsOutputAnnotations, AnalyzedESLintReport } from './types';
-import constants from './inputs';
-const { sha, githubContext, owner, repo, checkName, eslintReportFile, githubWorkSpace } = constants;
+import inputs from './inputs';
+const { sha, githubContext, owner, repo, checkName, eslintReportFile, githubWorkSpace } = inputs;
 
 /**
  * Analyzes an ESLint report JS object and returns a report

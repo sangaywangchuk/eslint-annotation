@@ -97,3 +97,27 @@ export interface FileSet {
   name: string;
   files: ESLintEntry[];
 }
+
+interface ArgsBase {
+  repo?: string;
+  sha?: string;
+  token: string;
+  conclusion?: Conclusion;
+  status: Status;
+  actionURL?: string;
+  detailsURL?: string;
+  output?: Output;
+  annotations?: Annotations;
+  images?: Images;
+  actions?: Actions;
+}
+
+export interface ArgsCreate extends ArgsBase {
+  name: string;
+}
+
+export interface ArgsUpdate extends ArgsBase {
+  checkID: number;
+}
+
+export type Args = ArgsCreate | ArgsUpdate;

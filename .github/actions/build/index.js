@@ -13763,6 +13763,80 @@
       /***/
     },
 
+    /***/ 4999: /***/ function (__unused_webpack_module, exports, __nccwpck_require__) {
+      'use strict';
+
+      var __awaiter =
+        (this && this.__awaiter) ||
+        function (thisArg, _arguments, P, generator) {
+          function adopt(value) {
+            return value instanceof P
+              ? value
+              : new P(function (resolve) {
+                  resolve(value);
+                });
+          }
+          return new (P || (P = Promise))(function (resolve, reject) {
+            function fulfilled(value) {
+              try {
+                step(generator.next(value));
+              } catch (e) {
+                reject(e);
+              }
+            }
+            function rejected(value) {
+              try {
+                step(generator['throw'](value));
+              } catch (e) {
+                reject(e);
+              }
+            }
+            function step(result) {
+              result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
+            }
+            step((generator = generator.apply(thisArg, _arguments || [])).next());
+          });
+        };
+      var __importDefault =
+        (this && this.__importDefault) ||
+        function (mod) {
+          return mod && mod.__esModule ? mod : { default: mod };
+        };
+      Object.defineProperty(exports, '__esModule', { value: true });
+      exports.createStatusCheck = void 0;
+      const inputs_1 = __importDefault(__nccwpck_require__(7063));
+      const { sha, ownership, checkName } = inputs_1.default;
+      /**
+       * Create a new GitHub check run
+       * @param options octokit.checks.create parameters
+       */
+      const formatDate = () => {
+        return new Date().toISOString();
+      };
+      const createStatusCheck = (octokit) =>
+        __awaiter(void 0, void 0, void 0, function* () {
+          const { data } = yield octokit.rest.checks.create(
+            Object.assign(Object.assign({}, ownership), {
+              started_at: formatDate(),
+              head_sha: sha,
+              status: 'in_progress',
+              name: checkName,
+              /**
+               * The check run API is still in beta and the developer preview must be opted into
+               * See https://developer.github.com/changes/2018-05-07-new-checks-api-public-beta/
+               */
+              mediaType: {
+                previews: ['antiope'],
+              },
+            })
+          );
+          return data.id;
+        });
+      exports.createStatusCheck = createStatusCheck;
+
+      /***/
+    },
+
     /***/ 1253: /***/ function (__unused_webpack_module, exports, __nccwpck_require__) {
       'use strict';
 
@@ -13877,6 +13951,7 @@
       const eslintReportJsonToObject_1 = __importDefault(__nccwpck_require__(1253));
       const inputs_1 = __importDefault(__nccwpck_require__(7063));
       const analyzedReport_1 = __importDefault(__nccwpck_require__(185));
+      const checksApi_1 = __nccwpck_require__(4999);
       (() =>
         __awaiter(void 0, void 0, void 0, function* () {
           /**
@@ -13886,18 +13961,17 @@
             const { token, sha, githubContext, owner, repo, checkName, eslintReportFile } = inputs_1.default;
             console.log('inputs', inputs_1.default);
             const parsedEslintReportJs = (0, eslintReportJsonToObject_1.default)(eslintReportFile);
-            console.log('parsedEslintReport: ', parsedEslintReportJs);
             const analyzedReport = (0, analyzedReport_1.default)(parsedEslintReportJs);
-            console.log('analyzedReport: ', analyzedReport);
             const annotations = analyzedReport.annotations;
             console.log('annotations: ', annotations);
             const conclusion = analyzedReport.success ? 'success' : 'failure';
             console.log('conclusion: ', conclusion);
             console.log('summery: ', analyzedReport.summary);
             core.debug(`Starting analysis of the ESLint report json to javascript object`);
-            core.notice('github action');
-            const octokit = github.getOctokit(token);
-            console.log('octokit: ', octokit);
+            const octokit = github.getOctokit(inputs_1.default.token);
+            const checkId = yield (0, checksApi_1.createStatusCheck)(octokit);
+            console.log('checkId', checkId);
+            console.log('octokit', octokit);
           } catch (e) {
             const error = e;
             core.debug(error.toString());
