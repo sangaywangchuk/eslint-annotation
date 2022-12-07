@@ -13799,13 +13799,14 @@
             repo: repo,
             pull_number: pullRequest.number,
           });
+          console.log('githubWorkSpace: ', githubWorkSpace);
           console.log('octokit.rest.pulls.listFiles() :', data);
           const changedFiles = data.map((prFiles) => prFiles.filename);
           const pullRequestFilesReportJS = reportJS.filter((file) => {
             file.filePath = file.filePath.replace(githubWorkSpace + '/', '');
+            console.log('file: ', file.filePath);
             return changedFiles.indexOf(file.filePath) !== -1;
           });
-          console.log('pullRequestFilesReportJS: ', pullRequestFilesReportJS);
           const analyzedPullRequestReport = getAnalyzedReport(pullRequestFilesReportJS);
           const combinedSummary = `${analyzedPullRequestReport.summary} in pull request changed files.`;
           const combinedMarkdown = `# Pull Request Changed Files ESLint Results: 
