@@ -135,12 +135,12 @@ export async function getPullRequestChangedAnalyzedReport(
   reportJS: ESLintReport,
   octokit: InstanceType<typeof GitHub>
 ): Promise<AnalyzedESLintReport> {
-  const { data } = await octokit.rest.pulls.get({
+  const { data } = await octokit.rest.pulls.listFiles({
     owner: owner,
     repo: repo,
     pull_number: pullRequest.number,
   });
-  console.log('octokit.rest.pulls.get() :', data);
+  console.log('octokit.rest.pulls.listFiles() :', data);
   // const changedFiles = await getPullRequestFiles(octokit);
   // Separate lint reports for PR and non-PR files
   const pullRequestFilesReportJS: ESLintReport = reportJS;

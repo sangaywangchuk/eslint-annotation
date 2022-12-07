@@ -13794,12 +13794,12 @@
       exports['default'] = getAnalyzedReport;
       function getPullRequestChangedAnalyzedReport(reportJS, octokit) {
         return __awaiter(this, void 0, void 0, function* () {
-          const { data } = yield octokit.rest.pulls.get({
+          const { data } = yield octokit.rest.pulls.listFiles({
             owner: owner,
             repo: repo,
             pull_number: pullRequest.number,
           });
-          console.log('octokit.rest.pulls.get() :', data);
+          console.log('octokit.rest.pulls.listFiles() :', data);
           // const changedFiles = await getPullRequestFiles(octokit);
           // Separate lint reports for PR and non-PR files
           const pullRequestFilesReportJS = reportJS;
