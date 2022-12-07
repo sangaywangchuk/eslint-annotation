@@ -102,6 +102,7 @@ export const closeStatusCheck = async (
         summary: summary,
       },
     });
+    console.log('closeStatusCheck: ', data);
   } catch (err) {
     const error = err as Error;
     core.debug(error.toString());

@@ -13941,6 +13941,7 @@
                 },
               })
             );
+            console.log('closeStatusCheck: ', data);
           } catch (err) {
             const error = err;
             core.debug(error.toString());
