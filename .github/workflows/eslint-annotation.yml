@@ -10,8 +10,8 @@ on:
   workflow_dispatch:
   
 permissions:
-  checks: write | read
-  statuses: write | read
+  checks: write
+  statuses: write
 
 jobs:
   lint:
