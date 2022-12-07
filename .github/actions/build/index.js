@@ -13807,7 +13807,12 @@
             console.log('file: ', file.filePath);
             return changedFiles.indexOf(file.filePath) !== -1;
           });
-          const analyzedPullRequestReport = getAnalyzedReport(pullRequestFilesReportJS);
+          const nonPullRequestFilesReportJS = reportJS.filter((file) => {
+            file.filePath = file.filePath.replace(githubWorkSpace + '/', '');
+            return changedFiles.indexOf(file.filePath) === -1;
+          });
+          console.log('nonPullRequestFilesReportJS: ', nonPullRequestFilesReportJS);
+          const analyzedPullRequestReport = getAnalyzedReport(nonPullRequestFilesReportJS);
           const combinedSummary = `${analyzedPullRequestReport.summary} in pull request changed files.`;
           const combinedMarkdown = `# Pull Request Changed Files ESLint Results: 
     **${analyzedPullRequestReport.summary}**
