@@ -8,12 +8,14 @@ on:
     
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+  
+permissions:
+  checks: write | read
+  statuses: write | read
 
 jobs:
   lint:
     runs-on: [ubuntu-latest]
-    permissions:
-      checks: write
     steps:
       - uses: actions/checkout@v2
         with:
