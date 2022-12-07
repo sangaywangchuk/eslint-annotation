@@ -13800,14 +13800,14 @@
             pull_number: pullRequest.number,
           });
           console.log('githubWorkSpace: ', githubWorkSpace);
-          console.log('octokit.rest.pulls.listFiles() :', data);
           const changedFiles = data.map((prFiles) => prFiles.filename);
+          console.log('changedFiles :', changedFiles);
           const pullRequestFilesReportJS = reportJS.filter((file) => {
             file.filePath = file.filePath.replace(githubWorkSpace + '/', '');
-            console.log('file: ', file.filePath);
             return changedFiles.indexOf(file.filePath) !== -1;
           });
           const nonPullRequestFilesReportJS = reportJS.filter((file) => {
+            console.log('compare: ');
             file.filePath = file.filePath.replace(githubWorkSpace + '/', '');
             return changedFiles.indexOf(file.filePath) === -1;
           });
