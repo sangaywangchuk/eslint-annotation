@@ -141,13 +141,12 @@ export async function getPullRequestChangedAnalyzedReport(
     pull_number: pullRequest.number,
   });
   console.log('octokit.rest.pulls.listFiles() :', data);
-  // const changedFiles = await getPullRequestFiles(octokit);
-  // Separate lint reports for PR and non-PR files
-  const pullRequestFilesReportJS: ESLintReport = reportJS;
-  // .filter((file) => {
-  //   file.filePath = file.filePath.replace(githubWorkSpace + '/', '');
-  //   return changedFiles.indexOf(file.filePath) !== -1;
-  // });
+  const changedFiles = data.map((prFiles) => prFiles.filename);
+  const pullRequestFilesReportJS: ESLintReport = reportJS.filter((file) => {
+    file.filePath = file.filePath.replace(githubWorkSpace + '/', '');
+    return changedFiles.indexOf(file.filePath) !== -1;
+  });
+  console.log('pullRequestFilesReportJS: ', pullRequestFilesReportJS);
   const analyzedPullRequestReport = getAnalyzedReport(pullRequestFilesReportJS);
   const combinedSummary = `${analyzedPullRequestReport.summary} in pull request changed files.`;
   const combinedMarkdown = `# Pull Request Changed Files ESLint Results: 
