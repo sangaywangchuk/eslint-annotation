@@ -13896,32 +13896,26 @@
             const batchMessage = `Found ${numberOfAnnotations} ESLint errors and warnings, processing batch ${batch} of ${numBatches}...`;
             console.log(batchMessage);
             const annotationBatch = annotations.splice(0, batchSize);
-            try {
-              yield octokit.rest.checks.update(
-                Object.assign(Object.assign({}, ownership), {
-                  check_run_id: checkId,
-                  status: 'in_progress',
-                  output: {
-                    title: checkName,
-                    summary: batchMessage,
-                    annotations: annotationBatch,
-                  },
-                  /**
-                   * The check run API is still in beta and the developer preview must be opted into
-                   * See https://developer.github.com/changes/2018-05-07-new-checks-api-public-beta/
-                   */
-                  mediaType: {
-                    previews: ['antiope'],
-                  },
-                })
-              );
-              console.log('batch: ', batch);
-              console.log('annotationBatch: ', annotationBatch);
-            } catch (err) {
-              const error = err;
-              core.debug(error.toString());
-              core.setFailed(error.message + 'Annotation updated failed');
-            }
+            const { data } = yield octokit.rest.checks.update(
+              Object.assign(Object.assign({}, ownership), {
+                check_run_id: checkId,
+                status: 'in_progress',
+                output: {
+                  title: checkName,
+                  summary: batchMessage,
+                  annotations: annotationBatch,
+                },
+                /**
+                 * The check run API is still in beta and the developer preview must be opted into
+                 * See https://developer.github.com/changes/2018-05-07-new-checks-api-public-beta/
+                 */
+                mediaType: {
+                  previews: ['antiope'],
+                },
+              })
+            );
+            console.log('batch: ', batch);
+            console.log('response: ', data);
           }
         });
       exports.updateCheckRun = updateCheckRun;
