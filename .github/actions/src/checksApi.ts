@@ -19,9 +19,9 @@ export const createStatusCheck = async (octokit: InstanceType<typeof GitHub>): P
     head_sha: sha,
     status: 'in_progress',
     name: checkName,
-    // mediaType: {
-    //   previews: ['antiope'],
-    // },
+    mediaType: {
+      previews: ['antiope'],
+    },
   });
   console.log('data', data);
   return data.id;
@@ -59,8 +59,6 @@ export const updateCheckRun = async (
       await octokit.rest.checks.update({
         ...ownership,
         check_run_id: checkId,
-        head_sha: sha,
-        name: checkName,
         status: 'in_progress',
         output: {
           title: checkName,
@@ -71,9 +69,9 @@ export const updateCheckRun = async (
          * The check run API is still in beta and the developer preview must be opted into
          * See https://developer.github.com/changes/2018-05-07-new-checks-api-public-beta/
          */
-        // mediaType: {
-        //   previews: ['antiope'],
-        // },
+        mediaType: {
+          previews: ['antiope'],
+        },
       });
       console.log('batch: ', batch);
       console.log('annotationBatch: ', annotationBatch);

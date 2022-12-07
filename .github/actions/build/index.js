@@ -13862,6 +13862,9 @@
               head_sha: sha,
               status: 'in_progress',
               name: checkName,
+              mediaType: {
+                previews: ['antiope'],
+              },
             })
           );
           console.log('data', data);
@@ -13897,13 +13900,18 @@
               yield octokit.rest.checks.update(
                 Object.assign(Object.assign({}, ownership), {
                   check_run_id: checkId,
-                  head_sha: sha,
-                  name: checkName,
                   status: 'in_progress',
                   output: {
                     title: checkName,
                     summary: batchMessage,
                     annotations: annotationBatch,
+                  },
+                  /**
+                   * The check run API is still in beta and the developer preview must be opted into
+                   * See https://developer.github.com/changes/2018-05-07-new-checks-api-public-beta/
+                   */
+                  mediaType: {
+                    previews: ['antiope'],
                   },
                 })
               );
