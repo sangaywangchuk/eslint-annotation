@@ -13645,14 +13645,47 @@
     /***/ 185: /***/ function (__unused_webpack_module, exports, __nccwpck_require__) {
       'use strict';
 
+      var __awaiter =
+        (this && this.__awaiter) ||
+        function (thisArg, _arguments, P, generator) {
+          function adopt(value) {
+            return value instanceof P
+              ? value
+              : new P(function (resolve) {
+                  resolve(value);
+                });
+          }
+          return new (P || (P = Promise))(function (resolve, reject) {
+            function fulfilled(value) {
+              try {
+                step(generator.next(value));
+              } catch (e) {
+                reject(e);
+              }
+            }
+            function rejected(value) {
+              try {
+                step(generator['throw'](value));
+              } catch (e) {
+                reject(e);
+              }
+            }
+            function step(result) {
+              result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
+            }
+            step((generator = generator.apply(thisArg, _arguments || [])).next());
+          });
+        };
       var __importDefault =
         (this && this.__importDefault) ||
         function (mod) {
           return mod && mod.__esModule ? mod : { default: mod };
         };
       Object.defineProperty(exports, '__esModule', { value: true });
+      exports.getPullRequestChangedAnalyzedReport = void 0;
       const inputs_1 = __importDefault(__nccwpck_require__(7063));
-      const { sha, githubContext, owner, repo, checkName, eslintReportFile, githubWorkSpace } = inputs_1.default;
+      const { sha, githubContext, owner, repo, checkName, eslintReportFile, githubWorkSpace, pullRequest } =
+        inputs_1.default;
       /**
        * Analyzes an ESLint report JS object and returns a report
        * @param files a JavaScript representation of an ESLint JSON report
@@ -13759,6 +13792,38 @@
         };
       }
       exports['default'] = getAnalyzedReport;
+      function getPullRequestChangedAnalyzedReport(reportJS, octokit) {
+        return __awaiter(this, void 0, void 0, function* () {
+          const { data } = yield octokit.rest.pulls.get({
+            owner: owner,
+            repo: repo,
+            pull_number: pullRequest.number,
+          });
+          console.log('octokit.rest.pulls.get() :', data);
+          // const changedFiles = await getPullRequestFiles(octokit);
+          // Separate lint reports for PR and non-PR files
+          const pullRequestFilesReportJS = reportJS;
+          // .filter((file) => {
+          //   file.filePath = file.filePath.replace(githubWorkSpace + '/', '');
+          //   return changedFiles.indexOf(file.filePath) !== -1;
+          // });
+          const analyzedPullRequestReport = getAnalyzedReport(pullRequestFilesReportJS);
+          const combinedSummary = `${analyzedPullRequestReport.summary} in pull request changed files.`;
+          const combinedMarkdown = `# Pull Request Changed Files ESLint Results: 
+    **${analyzedPullRequestReport.summary}**
+    ${analyzedPullRequestReport.markdown}
+  `;
+          return {
+            errorCount: analyzedPullRequestReport.errorCount,
+            warningCount: analyzedPullRequestReport.warningCount,
+            markdown: combinedMarkdown,
+            success: analyzedPullRequestReport.success,
+            summary: combinedSummary,
+            annotations: analyzedPullRequestReport.annotations,
+          };
+        });
+      }
+      exports.getPullRequestChangedAnalyzedReport = getPullRequestChangedAnalyzedReport;
 
       /***/
     },
@@ -13846,7 +13911,7 @@
       exports.closeStatusCheck = exports.updateCheckRun = exports.createStatusCheck = void 0;
       const inputs_1 = __importDefault(__nccwpck_require__(7063));
       const core = __importStar(__nccwpck_require__(2186));
-      const { sha, ownership, checkName } = inputs_1.default;
+      const { sha, ownership, checkName, repo, owner, pullRequest } = inputs_1.default;
       /**
        * Create a new GitHub check run
        * @param options octokit.checks.create parameters
@@ -13925,6 +13990,7 @@
             console.log('conclusion: ', conclusion);
             console.log('checkId: ', checkId);
             console.log('summary: ', summary);
+            octokit.rest.pulls.get();
             // https://developer.github.com/v3/checks/runs/#create-a-check-run
             // https://octokit.github.io/rest.js/v16#checks-create
             const { data } = yield octokit.rest.checks.create(
@@ -14066,21 +14132,23 @@
       const github = __importStar(__nccwpck_require__(5438));
       const eslintReportJsonToObject_1 = __importDefault(__nccwpck_require__(1253));
       const inputs_1 = __importDefault(__nccwpck_require__(7063));
-      const analyzedReport_1 = __importDefault(__nccwpck_require__(185));
+      const analyzedReport_1 = __nccwpck_require__(185);
       const checksApi_1 = __nccwpck_require__(4999);
       (() =>
         __awaiter(void 0, void 0, void 0, function* () {
           try {
             core.debug(`Starting analysis of the ESLint report json to javascript object`);
             const { token, eslintReportFile } = inputs_1.default;
+            console.log('inputs: ', inputs_1.default);
             const parsedEslintReportJs = (0, eslintReportJsonToObject_1.default)(eslintReportFile);
-            const analyzedReport = (0, analyzedReport_1.default)(parsedEslintReportJs);
-            console.log('analyzedReport: ', analyzedReport);
-            const conclusion = analyzedReport.success ? 'success' : 'failure';
+            // const analyzedReport = getAnalyzedReport(parsedEslintReportJs);
+            // console.log('analyzedReport: ', analyzedReport);
+            // const conclusion = analyzedReport.success ? 'success' : 'failure';
             const octokit = github.getOctokit(token);
+            yield (0, analyzedReport_1.getPullRequestChangedAnalyzedReport)(parsedEslintReportJs, octokit);
             const checkId = yield (0, checksApi_1.createStatusCheck)(octokit);
-            yield (0, checksApi_1.updateCheckRun)(octokit, checkId, analyzedReport.annotations);
-            yield (0, checksApi_1.closeStatusCheck)(octokit, conclusion, checkId, analyzedReport.summary);
+            // await updateCheckRun(octokit, checkId, analyzedReport.annotations);
+            // await closeStatusCheck(octokit, conclusion, checkId, analyzedReport.summary);
           } catch (e) {
             const error = e;
             core.debug(error.toString());
@@ -14145,10 +14213,16 @@
       const sha = github.context.sha;
       const checkName = core.getInput('check-name') || 'ESLint Annotation Report Analysis';
       const eslintReportFile = core.getInput('eslint-report-json', { required: true });
+      // If this is a pull request, store the context
+      // Otherwise, set to false
+      const isPullRequest = Object.prototype.hasOwnProperty.call(github.context.payload, 'pull_request');
+      const pullRequest = isPullRequest ? github.context.payload.pull_request : false;
       exports['default'] = {
         token: githubToken,
         sha: sha,
         ownership,
+        isPullRequest,
+        pullRequest,
         githubWorkSpace: process.env.GITHUB_WORKSPACE,
         githubContext: github.context,
         owner: github.context.repo.owner,

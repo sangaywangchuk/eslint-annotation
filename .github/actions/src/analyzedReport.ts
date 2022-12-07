@@ -1,6 +1,7 @@
 import type { ESLintReport, ChecksUpdateParamsOutputAnnotations, AnalyzedESLintReport } from './types';
 import inputs from './inputs';
-const { sha, githubContext, owner, repo, checkName, eslintReportFile, githubWorkSpace } = inputs;
+import { GitHub } from '@actions/github/lib/utils';
+const { sha, githubContext, owner, repo, checkName, eslintReportFile, githubWorkSpace, pullRequest } = inputs;
 
 /**
  * Analyzes an ESLint report JS object and returns a report
@@ -127,5 +128,38 @@ export default function getAnalyzedReport(files: ESLintReport): AnalyzedESLintRe
     success,
     summary: `${errorCount} ESLint error(s) and ${warningCount} ESLint warning(s) found`,
     annotations,
+  };
+}
+
+export async function getPullRequestChangedAnalyzedReport(
+  reportJS: ESLintReport,
+  octokit: InstanceType<typeof GitHub>
+): Promise<AnalyzedESLintReport> {
+  const { data } = await octokit.rest.pulls.get({
+    owner: owner,
+    repo: repo,
+    pull_number: pullRequest.number,
+  });
+  console.log('octokit.rest.pulls.get() :', data);
+  // const changedFiles = await getPullRequestFiles(octokit);
+  // Separate lint reports for PR and non-PR files
+  const pullRequestFilesReportJS: ESLintReport = reportJS;
+  // .filter((file) => {
+  //   file.filePath = file.filePath.replace(githubWorkSpace + '/', '');
+  //   return changedFiles.indexOf(file.filePath) !== -1;
+  // });
+  const analyzedPullRequestReport = getAnalyzedReport(pullRequestFilesReportJS);
+  const combinedSummary = `${analyzedPullRequestReport.summary} in pull request changed files.`;
+  const combinedMarkdown = `# Pull Request Changed Files ESLint Results: 
+    **${analyzedPullRequestReport.summary}**
+    ${analyzedPullRequestReport.markdown}
+  `;
+  return {
+    errorCount: analyzedPullRequestReport.errorCount,
+    warningCount: analyzedPullRequestReport.warningCount,
+    markdown: combinedMarkdown,
+    success: analyzedPullRequestReport.success,
+    summary: combinedSummary,
+    annotations: analyzedPullRequestReport.annotations,
   };
 }

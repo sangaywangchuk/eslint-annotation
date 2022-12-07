@@ -1,6 +1,6 @@
 import inputs from './inputs';
 import * as core from '@actions/core';
-const { sha, ownership, checkName } = inputs;
+const { sha, ownership, checkName, repo, owner, pullRequest } = inputs;
 import { GitHub } from '@actions/github/lib/utils';
 import { ChecksUpdateParamsOutputAnnotations } from './types';
 /**
@@ -87,6 +87,7 @@ export const closeStatusCheck = async (
     console.log('conclusion: ', conclusion);
     console.log('checkId: ', checkId);
     console.log('summary: ', summary);
+    octokit.rest.pulls.get();
     // https://developer.github.com/v3/checks/runs/#create-a-check-run
     // https://octokit.github.io/rest.js/v16#checks-create
     const { data } = await octokit.rest.checks.create({
