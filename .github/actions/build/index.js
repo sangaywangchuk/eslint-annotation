@@ -13803,6 +13803,7 @@
           const changedFiles = data.map((prFiles) => prFiles.filename);
           console.log('changedFiles :', changedFiles);
           const pullRequestFilesReportJS = reportJS.filter((file) => {
+            console.log(changedFiles.indexOf(file.filePath), file.filePath);
             return changedFiles.indexOf(file.filePath) === 1;
           });
           const nonPullRequestFilesReportJS = reportJS.filter((file) => {
@@ -13938,6 +13939,8 @@
                 },
               })
             );
+            console.log('status: ');
+            console.log('status: ', data.status);
           }
         });
       exports.updateCheckRun = updateCheckRun;

@@ -69,6 +69,8 @@ export const updateCheckRun = async (
         previews: ['antiope'],
       },
     });
+    console.log('status: ');
+    console.log('status: ', data.status);
   }
 };
 

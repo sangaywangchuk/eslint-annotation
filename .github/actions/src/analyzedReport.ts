@@ -145,6 +145,7 @@ export async function getPullRequestChangedAnalyzedReport(
   console.log('changedFiles :', changedFiles);
 
   const pullRequestFilesReportJS: ESLintReport = reportJS.filter((file) => {
+    console.log(changedFiles.indexOf(file.filePath), file.filePath);
     return changedFiles.indexOf(file.filePath) === 1;
   });
   const nonPullRequestFilesReportJS: ESLintReport = reportJS.filter((file) => {
