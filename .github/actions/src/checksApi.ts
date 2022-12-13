@@ -1,6 +1,6 @@
 import inputs from './inputs';
 import * as core from '@actions/core';
-const { sha, ownership, checkName } = inputs;
+const { sha, ownership, checkName, repo, owner, pullRequest } = inputs;
 import { GitHub } from '@actions/github/lib/utils';
 import { ChecksUpdateParamsOutputAnnotations } from './types';
 /**
@@ -23,6 +23,7 @@ export const createStatusCheck = async (octokit: InstanceType<typeof GitHub>): P
       previews: ['antiope'],
     },
   });
+  console.log('data', data);
   return data.id;
 };
 
@@ -49,37 +50,28 @@ export const updateCheckRun = async (
   const numberOfAnnotations = annotations.length;
   const batchSize = 50;
   const numBatches = Math.ceil(numberOfAnnotations / batchSize);
-  const checkUpdatePromises = [];
   for (let batch = 1; batch <= numBatches; batch++) {
     const batchMessage = `Found ${numberOfAnnotations} ESLint errors and warnings, processing batch ${batch} of ${numBatches}...`;
-    console.log(batchMessage);
     const annotationBatch = annotations.splice(0, batchSize);
-    try {
-      await octokit.rest.checks.update({
-        ...ownership,
-        check_run_id: checkId,
-        head_sha: sha,
-        name: checkName,
-        status: 'in_progress',
-        output: {
-          title: checkName,
-          summary: batchMessage,
-          annotations: annotationBatch,
-        },
-        /**
-         * The check run API is still in beta and the developer preview must be opted into
-         * See https://developer.github.com/changes/2018-05-07-new-checks-api-public-beta/
-         */
-        mediaType: {
-          previews: ['antiope'],
-        },
-      });
-      console.log('batch: ', batch);
-    } catch (err) {
-      const error = err as Error;
-      core.debug(error.toString());
-      core.setFailed(error.message + 'Annotation updated failed');
-    }
+    const { data } = await octokit.rest.checks.update({
+      ...ownership,
+      check_run_id: checkId,
+      status: 'in_progress',
+      output: {
+        title: checkName,
+        summary: batchMessage,
+        annotations: annotationBatch,
+      },
+      /**
+       * The check run API is still in beta and the developer preview must be opted into
+       * See https://developer.github.com/changes/2018-05-07-new-checks-api-public-beta/
+       */
+      mediaType: {
+        previews: ['antiope'],
+      },
+    });
+    console.log('status');
+    console.log('status: ', data.status);
   }
 };
 
@@ -89,25 +81,20 @@ export const closeStatusCheck = async (
   checkId: number,
   summary: string
 ): Promise<void> => {
-  try {
-    // https://developer.github.com/v3/checks/runs/#create-a-check-run
-    // https://octokit.github.io/rest.js/v16#checks-create
-    const { data } = await octokit.rest.checks.create({
-      ...ownership,
-      conclusion,
-      head_sha: sha,
-      name: checkName,
-      completed_at: formatDate(),
-      status: 'completed',
-      check_run_id: checkId,
-      output: {
-        title: checkName,
-        summary: summary,
-      },
-    });
-  } catch (err) {
-    const error = err as Error;
-    core.debug(error.toString());
-    core.setFailed(error.message + 'Annotation updated failed');
-  }
+  // https://developer.github.com/v3/checks/runs/#create-a-check-run
+  // https://octokit.github.io/rest.js/v16#checks-create
+  const { data } = await octokit.rest.checks.create({
+    ...ownership,
+    head_sha: sha,
+    name: checkName,
+    status: 'completed',
+    conclusion,
+    completed_at: formatDate(),
+    check_run_id: checkId,
+    output: {
+      title: checkName,
+      summary: summary,
+    },
+  });
+  console.log('closeStatusCheck: ', data);
 };
