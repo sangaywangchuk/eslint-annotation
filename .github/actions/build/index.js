@@ -13945,7 +13945,7 @@
               })
             );
             console.log('status');
-            console.log('status: ', data.status);
+            console.log('status: ', data);
           }
         });
       exports.updateCheckRun = updateCheckRun;

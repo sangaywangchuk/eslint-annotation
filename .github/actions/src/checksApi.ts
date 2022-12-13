@@ -73,7 +73,7 @@ export const updateCheckRun = async (
       },
     });
     console.log('status');
-    console.log('status: ', data.status);
+    console.log('status: ', data);
   }
 };
 
