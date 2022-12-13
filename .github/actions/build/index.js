@@ -14143,13 +14143,22 @@
         __awaiter(void 0, void 0, void 0, function* () {
           try {
             core.debug(`Starting analysis of the ESLint report json to javascript object`);
-            const { token, eslintReportFile } = inputs_1.default;
+            const { token, eslintReportFile, pullRequest, repo, owner } = inputs_1.default;
             console.log('inputs: ', inputs_1.default);
             const parsedEslintReportJs = (0, eslintReportJsonToObject_1.default)(eslintReportFile);
             // const analyzedReport = getAnalyzedReport(parsedEslintReportJs);
             // console.log('analyzedReport: ', analyzedReport);
             // const conclusion = analyzedReport.success ? 'success' : 'failure';
             const octokit = github.getOctokit(token);
+            const git = github.getOctokit(token).rest;
+            console.log('github', git);
+            console.log('before pr files', pullRequest.number, repo, owner);
+            const { data } = yield git.pulls.listFiles({
+              pull_number: pullRequest.number,
+              repo: repo,
+              owner: owner,
+            });
+            console.log('pr files', data);
             yield (0, analyzedReport_1.getPullRequestChangedAnalyzedReport)(parsedEslintReportJs, octokit);
             const checkId = yield (0, checksApi_1.createStatusCheck)(octokit);
             // await updateCheckRun(octokit, checkId, analyzedReport.annotations);
