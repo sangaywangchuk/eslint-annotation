@@ -35,6 +35,7 @@ export const createStatusCheck = async (octokit: InstanceType<typeof GitHub>): P
 export const updateCheckRun = async (
   octokit: InstanceType<typeof GitHub>,
   checkId: number,
+  conclusion: string,
   annotations: ChecksUpdateParamsOutputAnnotations[]
 ): Promise<void> => {
   /**
@@ -56,7 +57,8 @@ export const updateCheckRun = async (
     const { data } = await octokit.rest.checks.update({
       ...ownership,
       check_run_id: checkId,
-      status: 'in_progress',
+      status: 'completed',
+      conclusion,
       output: {
         title: checkName,
         summary: batchMessage,

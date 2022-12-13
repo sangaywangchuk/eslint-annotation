@@ -13907,7 +13907,7 @@
        * @param annotations an array of annotation objects. See https://developer.github.com/v3/checks/runs/#annotations-object-1
        * @param checkId the ID of the check run to add annotations to
        */
-      const updateCheckRun = (octokit, checkId, annotations) =>
+      const updateCheckRun = (octokit, checkId, conclusion, annotations) =>
         __awaiter(void 0, void 0, void 0, function* () {
           /**
            * Update the GitHub check with the
@@ -13928,7 +13928,8 @@
             const { data } = yield octokit.rest.checks.update(
               Object.assign(Object.assign({}, ownership), {
                 check_run_id: checkId,
-                status: 'in_progress',
+                status: 'completed',
+                conclusion,
                 output: {
                   title: checkName,
                   summary: batchMessage,
@@ -14103,8 +14104,8 @@
             const data = yield (0, analyzedReport_1.getPullRequestChangedAnalyzedReport)(parsedEslintReportJs, octokit);
             const conclusion = data.success ? 'success' : 'failure';
             console.log('conclusion', conclusion);
-            yield (0, checksApi_1.updateCheckRun)(octokit, checkId, data.annotations);
-            yield (0, checksApi_1.closeStatusCheck)(octokit, conclusion, checkId, data.summary);
+            yield (0, checksApi_1.updateCheckRun)(octokit, checkId, conclusion, data.annotations);
+            // await closeStatusCheck(octokit, conclusion, checkId, data.summary);
           } catch (e) {
             const error = e;
             core.debug(error.toString());

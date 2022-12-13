@@ -20,9 +20,9 @@ import { GitHub } from '@actions/github/lib/utils';
 
     const conclusion = data.success ? 'success' : 'failure';
     console.log('conclusion', conclusion);
-    await updateCheckRun(octokit, checkId, data.annotations);
+    await updateCheckRun(octokit, checkId, conclusion, data.annotations);
 
-    await closeStatusCheck(octokit, conclusion, checkId, data.summary);
+    // await closeStatusCheck(octokit, conclusion, checkId, data.summary);
   } catch (e) {
     const error = e as Error;
     core.debug(error.toString());
