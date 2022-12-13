@@ -58,7 +58,7 @@ export default function getAnalyzedReport(files: ESLintReport): AnalyzedESLintRe
 
       // Trim the absolute path prefix from the file path
       const filePathTrimmed: string = filePath.replace(`${githubWorkSpace}/`, '');
-
+      console.log(`Analyzing filePathTrimmed:  ${filePathTrimmed}`);
       /**
        * Create a GitHub annotation object for the error/warning
        * See https://developer.github.com/v3/checks/runs/#annotations-object
@@ -145,10 +145,12 @@ export async function getPullRequestChangedAnalyzedReport(
   console.log('changedFiles :', changedFiles);
 
   const pullRequestFilesReportJS: ESLintReport = reportJS.filter((file) => {
+    file.filePath = file.filePath.replace(githubWorkSpace + '/', '');
     console.log(changedFiles.indexOf(file.filePath), file.filePath);
     return changedFiles.indexOf(file.filePath) === 1;
   });
   const nonPullRequestFilesReportJS: ESLintReport = reportJS.filter((file) => {
+    file.filePath = file.filePath.replace(githubWorkSpace + '/', '');
     return changedFiles.indexOf(file.filePath) === -1;
   });
   console.log('pullRequestFilesReportJS: ', pullRequestFilesReportJS);

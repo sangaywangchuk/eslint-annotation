@@ -13729,6 +13729,7 @@
             const isWarning = severity < 2;
             // Trim the absolute path prefix from the file path
             const filePathTrimmed = filePath.replace(`${githubWorkSpace}/`, '');
+            console.log(`Analyzing filePathTrimmed:  ${filePathTrimmed}`);
             /**
              * Create a GitHub annotation object for the error/warning
              * See https://developer.github.com/v3/checks/runs/#annotations-object
@@ -13803,10 +13804,12 @@
           const changedFiles = data.map((prFiles) => prFiles.filename);
           console.log('changedFiles :', changedFiles);
           const pullRequestFilesReportJS = reportJS.filter((file) => {
+            file.filePath = file.filePath.replace(githubWorkSpace + '/', '');
             console.log(changedFiles.indexOf(file.filePath), file.filePath);
             return changedFiles.indexOf(file.filePath) === 1;
           });
           const nonPullRequestFilesReportJS = reportJS.filter((file) => {
+            file.filePath = file.filePath.replace(githubWorkSpace + '/', '');
             return changedFiles.indexOf(file.filePath) === -1;
           });
           console.log('pullRequestFilesReportJS: ', pullRequestFilesReportJS);
@@ -14092,16 +14095,16 @@
             const { token, eslintReportFile, pullRequest, repo, owner } = inputs_1.default;
             console.log('inputs: ', inputs_1.default);
             const parsedEslintReportJs = (0, eslintReportJsonToObject_1.default)(eslintReportFile);
+            console.log('parsedEslintReportJs: ', parsedEslintReportJs);
             const analyzedReport = (0, analyzedReport_1.default)(parsedEslintReportJs);
             // console.log('analyzedReport: ', analyzedReport);
             const octokit = github.getOctokit(token);
             const checkId = yield (0, checksApi_1.createStatusCheck)(octokit);
-            console.log('checkId', checkId);
             const data = yield (0, analyzedReport_1.getPullRequestChangedAnalyzedReport)(parsedEslintReportJs, octokit);
             const conclusion = data.success ? 'success' : 'failure';
             console.log('conclusion', conclusion);
             yield (0, checksApi_1.updateCheckRun)(octokit, checkId, data.annotations);
-            yield (0, checksApi_1.closeStatusCheck)(octokit, conclusion, checkId, analyzedReport.summary);
+            yield (0, checksApi_1.closeStatusCheck)(octokit, conclusion, checkId, data.summary);
           } catch (e) {
             const error = e;
             core.debug(error.toString());
