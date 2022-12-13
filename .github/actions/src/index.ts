@@ -11,26 +11,18 @@ import { GitHub } from '@actions/github/lib/utils';
     const { token, eslintReportFile, pullRequest, repo, owner } = inputs;
     console.log('inputs: ', inputs);
     const parsedEslintReportJs = eslintJsonReportToJsObject(eslintReportFile);
-    // const analyzedReport = getAnalyzedReport(parsedEslintReportJs);
+    const analyzedReport = getAnalyzedReport(parsedEslintReportJs);
     // console.log('analyzedReport: ', analyzedReport);
-    // const conclusion = analyzedReport.success ? 'success' : 'failure';
     const octokit = github.getOctokit(token);
-    const git = github.getOctokit(token).rest;
-    console.log('github', git);
-    console.log('before pr files', pullRequest.number, repo, owner);
-    const { data } = await git.pulls.listFiles({
-      pull_number: pullRequest.number,
-      repo: repo,
-      owner: owner,
-    });
-    console.log('pr files', data);
-
-    await getPullRequestChangedAnalyzedReport(parsedEslintReportJs, octokit);
     const checkId = await createStatusCheck(octokit);
+    console.log('checkId', checkId);
+    const data = await getPullRequestChangedAnalyzedReport(parsedEslintReportJs, octokit);
 
-    // await updateCheckRun(octokit, checkId, analyzedReport.annotations);
+    const conclusion = data.success ? 'success' : 'failure';
+    console.log('conclusion', conclusion);
+    await updateCheckRun(octokit, checkId, data.annotations);
 
-    // await closeStatusCheck(octokit, conclusion, checkId, analyzedReport.summary);
+    await closeStatusCheck(octokit, conclusion, checkId, analyzedReport.summary);
   } catch (e) {
     const error = e as Error;
     core.debug(error.toString());

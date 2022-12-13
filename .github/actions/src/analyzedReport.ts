@@ -145,16 +145,15 @@ export async function getPullRequestChangedAnalyzedReport(
   console.log('changedFiles :', changedFiles);
 
   const pullRequestFilesReportJS: ESLintReport = reportJS.filter((file) => {
-    file.filePath = file.filePath.replace(githubWorkSpace + '/', '');
-    return changedFiles.indexOf(file.filePath) !== -1;
+    return changedFiles.indexOf(file.filePath) === 1;
   });
   const nonPullRequestFilesReportJS: ESLintReport = reportJS.filter((file) => {
-    console.log('compare: ');
-    file.filePath = file.filePath.replace(githubWorkSpace + '/', '');
     return changedFiles.indexOf(file.filePath) === -1;
   });
-  console.log('nonPullRequestFilesReportJS: ', nonPullRequestFilesReportJS);
-  const analyzedPullRequestReport = getAnalyzedReport(nonPullRequestFilesReportJS);
+  console.log('pullRequestFilesReportJS: ', pullRequestFilesReportJS);
+
+  const analyzedPullRequestReport = getAnalyzedReport(pullRequestFilesReportJS);
+  console.log('analyzedPullRequestReport: ', analyzedPullRequestReport);
   const combinedSummary = `${analyzedPullRequestReport.summary} in pull request changed files.`;
   const combinedMarkdown = `# Pull Request Changed Files ESLint Results: 
     **${analyzedPullRequestReport.summary}**

@@ -23,7 +23,6 @@ export const createStatusCheck = async (octokit: InstanceType<typeof GitHub>): P
       previews: ['antiope'],
     },
   });
-  console.log('data', data);
   return data.id;
 };
 
@@ -50,10 +49,8 @@ export const updateCheckRun = async (
   const numberOfAnnotations = annotations.length;
   const batchSize = 50;
   const numBatches = Math.ceil(numberOfAnnotations / batchSize);
-  const checkUpdatePromises = [];
   for (let batch = 1; batch <= numBatches; batch++) {
     const batchMessage = `Found ${numberOfAnnotations} ESLint errors and warnings, processing batch ${batch} of ${numBatches}...`;
-    console.log(batchMessage);
     const annotationBatch = annotations.splice(0, batchSize);
     const { data } = await octokit.rest.checks.update({
       ...ownership,
@@ -72,41 +69,29 @@ export const updateCheckRun = async (
         previews: ['antiope'],
       },
     });
-    console.log('batch: ', batch);
-    console.log('response: ', data);
   }
 };
 
-export const closeStatusCheck = async (
+export const closeStatusCheck = (
   octokit: InstanceType<typeof GitHub>,
   conclusion: string,
   checkId: number,
   summary: string
-): Promise<void> => {
-  try {
-    console.log('conclusion: ', conclusion);
-    console.log('checkId: ', checkId);
-    console.log('summary: ', summary);
-    octokit.rest.pulls.get();
-    // https://developer.github.com/v3/checks/runs/#create-a-check-run
-    // https://octokit.github.io/rest.js/v16#checks-create
-    const { data } = await octokit.rest.checks.create({
-      ...ownership,
-      head_sha: sha,
-      name: checkName,
-      status: 'completed',
-      conclusion,
-      completed_at: formatDate(),
-      check_run_id: checkId,
-      output: {
-        title: checkName,
-        summary: summary,
-      },
-    });
-    console.log('closeStatusCheck: ', data);
-  } catch (err) {
-    const error = err as Error;
-    core.debug(error.toString());
-    core.setFailed(error.message + 'Annotation updated failed');
-  }
+) => {
+  // https://developer.github.com/v3/checks/runs/#create-a-check-run
+  // https://octokit.github.io/rest.js/v16#checks-create
+  const data = octokit.rest.checks.create({
+    ...ownership,
+    head_sha: sha,
+    name: checkName,
+    status: 'completed',
+    conclusion,
+    completed_at: formatDate(),
+    check_run_id: checkId,
+    output: {
+      title: checkName,
+      summary: summary,
+    },
+  });
+  console.log('closeStatusCheck: ', data);
 };
