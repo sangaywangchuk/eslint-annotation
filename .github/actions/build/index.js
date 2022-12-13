@@ -13806,7 +13806,7 @@
           const pullRequestFilesReportJS = reportJS.filter((file) => {
             file.filePath = file.filePath.replace(githubWorkSpace + '/', '');
             console.log(changedFiles.indexOf(file.filePath), file.filePath);
-            return changedFiles.indexOf(file.filePath) === 1;
+            return changedFiles.indexOf(file.filePath) !== -1;
           });
           const nonPullRequestFilesReportJS = reportJS.filter((file) => {
             file.filePath = file.filePath.replace(githubWorkSpace + '/', '');
