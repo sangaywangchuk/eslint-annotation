@@ -23,6 +23,7 @@ export const createStatusCheck = async (octokit: InstanceType<typeof GitHub>): P
       previews: ['antiope'],
     },
   });
+  console.log('data', data);
   return data.id;
 };
 
@@ -69,20 +70,20 @@ export const updateCheckRun = async (
         previews: ['antiope'],
       },
     });
-    console.log('status: ');
+    console.log('status');
     console.log('status: ', data.status);
   }
 };
 
-export const closeStatusCheck = (
+export const closeStatusCheck = async (
   octokit: InstanceType<typeof GitHub>,
   conclusion: string,
   checkId: number,
   summary: string
-) => {
+): Promise<void> => {
   // https://developer.github.com/v3/checks/runs/#create-a-check-run
   // https://octokit.github.io/rest.js/v16#checks-create
-  const data = octokit.rest.checks.create({
+  const { data } = await octokit.rest.checks.create({
     ...ownership,
     head_sha: sha,
     name: checkName,

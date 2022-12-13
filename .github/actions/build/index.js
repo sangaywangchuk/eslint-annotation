@@ -13895,6 +13895,7 @@
               },
             })
           );
+          console.log('data', data);
           return data.id;
         });
       exports.createStatusCheck = createStatusCheck;
@@ -13939,30 +13940,31 @@
                 },
               })
             );
-            console.log('status: ');
+            console.log('status');
             console.log('status: ', data.status);
           }
         });
       exports.updateCheckRun = updateCheckRun;
-      const closeStatusCheck = (octokit, conclusion, checkId, summary) => {
-        // https://developer.github.com/v3/checks/runs/#create-a-check-run
-        // https://octokit.github.io/rest.js/v16#checks-create
-        const data = octokit.rest.checks.create(
-          Object.assign(Object.assign({}, ownership), {
-            head_sha: sha,
-            name: checkName,
-            status: 'completed',
-            conclusion,
-            completed_at: formatDate(),
-            check_run_id: checkId,
-            output: {
-              title: checkName,
-              summary: summary,
-            },
-          })
-        );
-        console.log('closeStatusCheck: ', data);
-      };
+      const closeStatusCheck = (octokit, conclusion, checkId, summary) =>
+        __awaiter(void 0, void 0, void 0, function* () {
+          // https://developer.github.com/v3/checks/runs/#create-a-check-run
+          // https://octokit.github.io/rest.js/v16#checks-create
+          const { data } = yield octokit.rest.checks.create(
+            Object.assign(Object.assign({}, ownership), {
+              head_sha: sha,
+              name: checkName,
+              status: 'completed',
+              conclusion,
+              completed_at: formatDate(),
+              check_run_id: checkId,
+              output: {
+                title: checkName,
+                summary: summary,
+              },
+            })
+          );
+          console.log('closeStatusCheck: ', data);
+        });
       exports.closeStatusCheck = closeStatusCheck;
 
       /***/
