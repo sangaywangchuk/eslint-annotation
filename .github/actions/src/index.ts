@@ -4,7 +4,6 @@ import eslintJsonReportToJsObject from './eslintReportJsonToObject';
 import inputs from './inputs';
 import getAnalyzedReport, { getPullRequestChangedAnalyzedReport } from './analyzedReport';
 import { createStatusCheck, updateCheckRun, closeStatusCheck } from './checksApi';
-import { GitHub } from '@actions/github/lib/utils';
 (async () => {
   try {
     core.debug(`Starting analysis of the ESLint report json to javascript object`);

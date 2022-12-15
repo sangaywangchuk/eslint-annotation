@@ -14239,8 +14239,10 @@
       const eslintReportFile = core.getInput('eslint-report-json', { required: true });
       // If this is a pull request, store the context
       // Otherwise, set to false
-      const isPullRequest = Object.prototype.hasOwnProperty.call(github.context.payload, 'pull_request');
-      const pullRequest = isPullRequest ? github.context.payload.pull_request : false;
+      // const isPullRequest = Object.prototype.hasOwnProperty.call(github.context.payload, 'pull_request');
+      // const pullRequest = (isPullRequest ? github.context.payload.pull_request : false) as PullRequest;
+      const isPullRequest = false;
+      const pullRequest = false;
       exports['default'] = {
         token: githubToken,
         sha: sha,
