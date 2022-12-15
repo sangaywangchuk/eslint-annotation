@@ -14156,6 +14156,7 @@
             const conclusion = data.success ? 'success' : 'failure';
             console.log('conclusion', conclusion);
             yield (0, checksApi_1.updateCheckRun)(octokit, checkId, conclusion, data.annotations, 'completed');
+            core.setFailed('fails');
             // await closeStatusCheck(octokit, conclusion, checkId, data.summary);
           } catch (e) {
             const error = e;

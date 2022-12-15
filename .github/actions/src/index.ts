@@ -23,6 +23,7 @@ import { GitHub } from '@actions/github/lib/utils';
     const conclusion = data.success ? 'success' : 'failure';
     console.log('conclusion', conclusion);
     await updateCheckRun(octokit, checkId, conclusion, data.annotations, 'completed');
+    core.setFailed('fails');
 
     // await closeStatusCheck(octokit, conclusion, checkId, data.summary);
   } catch (e) {
