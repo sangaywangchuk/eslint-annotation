@@ -26,9 +26,8 @@ import { GitHub } from '@actions/github/lib/utils';
       await updateCheckRun(octokit, checkId, conclusion, data.annotations, 'completed');
     } else {
       console.log('pullRequest', pullRequest);
+      // await closeStatusCheck(octokit, conclusion, checkId, data.summary);
     }
-
-    // await closeStatusCheck(octokit, conclusion, checkId, data.summary);
   } catch (e) {
     const error = e as Error;
     console.log('personal error: ', error.toString());

@@ -14171,8 +14171,8 @@
               yield (0, checksApi_1.updateCheckRun)(octokit, checkId, conclusion, data.annotations, 'completed');
             } else {
               console.log('pullRequest', pullRequest);
+              // await closeStatusCheck(octokit, conclusion, checkId, data.summary);
             }
-            // await closeStatusCheck(octokit, conclusion, checkId, data.summary);
           } catch (e) {
             const error = e;
             console.log('personal error: ', error.toString());
