@@ -1,6 +1,7 @@
 import type { ESLintReport, ChecksUpdateParamsOutputAnnotations, AnalyzedESLintReport } from './types';
 import inputs from './inputs';
-const { sha, githubContext, owner, repo, checkName, eslintReportFile, githubWorkSpace } = inputs;
+import { GitHub } from '@actions/github/lib/utils';
+const { sha, githubContext, owner, repo, checkName, eslintReportFile, githubWorkSpace, pullRequest } = inputs;
 
 /**
  * Analyzes an ESLint report JS object and returns a report
@@ -57,7 +58,7 @@ export default function getAnalyzedReport(files: ESLintReport): AnalyzedESLintRe
 
       // Trim the absolute path prefix from the file path
       const filePathTrimmed: string = filePath.replace(`${githubWorkSpace}/`, '');
-
+      console.log(`Analyzing filePathTrimmed:  ${filePathTrimmed}`);
       /**
        * Create a GitHub annotation object for the error/warning
        * See https://developer.github.com/v3/checks/runs/#annotations-object
@@ -127,5 +128,46 @@ export default function getAnalyzedReport(files: ESLintReport): AnalyzedESLintRe
     success,
     summary: `${errorCount} ESLint error(s) and ${warningCount} ESLint warning(s) found`,
     annotations,
+  };
+}
+
+export async function getPullRequestChangedAnalyzedReport(
+  reportJS: ESLintReport,
+  octokit: InstanceType<typeof GitHub>
+): Promise<AnalyzedESLintReport> {
+  const { data } = await octokit.rest.pulls.listFiles({
+    owner: owner,
+    repo: repo,
+    pull_number: pullRequest.number,
+  });
+  console.log('githubWorkSpace: ', githubWorkSpace);
+  const changedFiles = data.map((prFiles) => prFiles.filename);
+  console.log('changedFiles :', changedFiles);
+
+  const pullRequestFilesReportJS: ESLintReport = reportJS.filter((file) => {
+    file.filePath = file.filePath.replace(githubWorkSpace + '/', '');
+    console.log(changedFiles.indexOf(file.filePath), file.filePath);
+    return changedFiles.indexOf(file.filePath) !== -1;
+  });
+  const nonPullRequestFilesReportJS: ESLintReport = reportJS.filter((file) => {
+    file.filePath = file.filePath.replace(githubWorkSpace + '/', '');
+    return changedFiles.indexOf(file.filePath) === -1;
+  });
+  console.log('pullRequestFilesReportJS: ', pullRequestFilesReportJS);
+
+  const analyzedPullRequestReport = getAnalyzedReport(pullRequestFilesReportJS);
+  console.log('analyzedPullRequestReport: ', analyzedPullRequestReport);
+  const combinedSummary = `${analyzedPullRequestReport.summary} in pull request changed files.`;
+  const combinedMarkdown = `# Pull Request Changed Files ESLint Results: 
+    **${analyzedPullRequestReport.summary}**
+    ${analyzedPullRequestReport.markdown}
+  `;
+  return {
+    errorCount: analyzedPullRequestReport.errorCount,
+    warningCount: analyzedPullRequestReport.warningCount,
+    markdown: combinedMarkdown,
+    success: analyzedPullRequestReport.success,
+    summary: combinedSummary,
+    annotations: analyzedPullRequestReport.annotations,
   };
 }

@@ -1,5 +1,4 @@
 import { Component } from '@angular/core';
-import { sdfa } from '@angular-devkit/build-angular'
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -7,6 +6,4 @@ import { sdfa } from '@angular-devkit/build-angular'
 })
 export class AppComponent {
   title = 'eslint-annotation';
-  name;
-  
 }

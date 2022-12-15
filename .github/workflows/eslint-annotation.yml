@@ -5,9 +5,13 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ '**' ]
-    
+
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+
+permissions:
+  checks: write
+  statuses: write
 
 jobs:
   lint:
@@ -25,13 +29,13 @@ jobs:
         with:
           path: '**/node_modules'
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: | 
+          restore-keys: |
             ${{ runner.os }}-modules-
       - name: Install dependencies
         if: steps.yarn-cache.outputs.cache-hit != 'true'
         run: yarn install
       - name: Annotate Eslint on PR files
         uses: ./.github/actions/
-        with: 
+        with:
           token: ${{secrets.GITHUB_TOKEN}}
           eslint-report-json: 'eslint-report.json'

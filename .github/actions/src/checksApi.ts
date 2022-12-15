@@ -1,6 +1,6 @@
 import inputs from './inputs';
 import * as core from '@actions/core';
-const { sha, ownership, checkName } = inputs;
+const { sha, ownership, checkName, repo, owner, pullRequest } = inputs;
 import { GitHub } from '@actions/github/lib/utils';
 import { ChecksUpdateParamsOutputAnnotations } from './types';
 /**
@@ -23,6 +23,7 @@ export const createStatusCheck = async (octokit: InstanceType<typeof GitHub>): P
       previews: ['antiope'],
     },
   });
+  console.log('data', data);
   return data.id;
 };
 
@@ -34,13 +35,9 @@ export const createStatusCheck = async (octokit: InstanceType<typeof GitHub>): P
 export const updateCheckRun = async (
   octokit: InstanceType<typeof GitHub>,
   checkId: number,
-<<<<<<< Updated upstream
-  annotations: ChecksUpdateParamsOutputAnnotations[]
-=======
   conclusion: string,
   annotations: ChecksUpdateParamsOutputAnnotations[],
   status: string
->>>>>>> Stashed changes
 ): Promise<void> => {
   /**
    * Update the GitHub check with the
@@ -55,39 +52,9 @@ export const updateCheckRun = async (
   const numberOfAnnotations = annotations.length;
   const batchSize = 50;
   const numBatches = Math.ceil(numberOfAnnotations / batchSize);
-  const checkUpdatePromises = [];
   for (let batch = 1; batch <= numBatches; batch++) {
     const batchMessage = `Found ${numberOfAnnotations} ESLint errors and warnings, processing batch ${batch} of ${numBatches}...`;
-    console.log(batchMessage);
     const annotationBatch = annotations.splice(0, batchSize);
-<<<<<<< Updated upstream
-    try {
-      await octokit.rest.checks.update({
-        ...ownership,
-        check_run_id: checkId,
-        head_sha: sha,
-        name: checkName,
-        status: 'in_progress',
-        output: {
-          title: checkName,
-          summary: batchMessage,
-          annotations: annotationBatch,
-        },
-        /**
-         * The check run API is still in beta and the developer preview must be opted into
-         * See https://developer.github.com/changes/2018-05-07-new-checks-api-public-beta/
-         */
-        mediaType: {
-          previews: ['antiope'],
-        },
-      });
-      console.log('batch: ', batch);
-    } catch (err) {
-      const error = err as Error;
-      core.debug(error.toString());
-      core.setFailed(error.message + 'Annotation updated failed');
-    }
-=======
     status = batch>=numBatches? 'completed' : 'in_progress';
     const finalConclusion = status==='completed'? conclusion: null;
     const { data } = await octokit.rest.checks.update({
@@ -109,8 +76,7 @@ export const updateCheckRun = async (
       },
     });
     console.log('status');
-    console.log('status: ', data);
->>>>>>> Stashed changes
+    console.log('updated data: ', data);
   }
 };
 
