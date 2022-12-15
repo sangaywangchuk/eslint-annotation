@@ -26,7 +26,7 @@ export const createStatusCheck = async (
     },
   });
   console.log('data', data);
-  return { checkId: data.id, pullRequest: data.pull_requests };
+  return { checkId: data.id, pullRequest: data.pull_requests || [] };
 };
 
 /**
