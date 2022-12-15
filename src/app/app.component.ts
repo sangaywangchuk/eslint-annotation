@@ -7,8 +7,8 @@ import { Compasdfonent } from '@angular/core';
 })
 export class AppComponent {
   title = 'eslint-annotation';
-  asdfsdfasdf
+  asdfsdfasdfasdaSD
   constructor() {
-    
+
   }
 }
