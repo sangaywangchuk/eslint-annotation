@@ -13794,13 +13794,13 @@
         };
       }
       exports['default'] = getAnalyzedReport;
-      function getPullRequestChangedAnalyzedReport(reportJS, octokit) {
+      function getPullRequestChangedAnalyzedReport(reportJS, octokit, number) {
         return __awaiter(this, void 0, void 0, function* () {
           console.log('getPullRequestChangedAnalyzedReport');
           const a = {
             owner: owner,
             repo: repo,
-            pull_number: pullRequest.number,
+            pull_number: number,
           };
           console.log('octokit.rest.pulls.listFiles: ', a);
           const { data } = yield octokit.rest.pulls.listFiles({
@@ -14151,7 +14151,7 @@
         __awaiter(void 0, void 0, void 0, function* () {
           try {
             core.debug(`Starting analysis of the ESLint report json to javascript object`);
-            const { token, eslintReportFile, pullRequest, repo, owner } = inputs_1.default;
+            const { token, sha, checkName, eslintReportFile, pullRequest, ownership, repo, owner } = inputs_1.default;
             console.log('inputs: ', inputs_1.default);
             const parsedEslintReportJs = (0, eslintReportJsonToObject_1.default)(eslintReportFile);
             console.log('parsedEslintReportJs: ', parsedEslintReportJs);
@@ -14160,15 +14160,25 @@
             const octokit = github.getOctokit(token);
             const checkId = yield (0, checksApi_1.createStatusCheck)(octokit);
             console.log('checkId', checkId);
-            if (pullRequest.number) {
-              console.log('pullRequest.number', pullRequest.number);
-              const data = yield (0, analyzedReport_1.getPullRequestChangedAnalyzedReport)(
+            const { data } = yield octokit.rest.checks.create(
+              Object.assign(Object.assign({}, ownership), {
+                name: checkName,
+                check_run_id: checkId,
+                output: {
+                  title: checkName,
+                },
+              })
+            );
+            if (data.pull_requests.length) {
+              console.log('pullRequest.number', data.pull_requests[0].number);
+              const report = yield (0, analyzedReport_1.getPullRequestChangedAnalyzedReport)(
                 parsedEslintReportJs,
-                octokit
+                octokit,
+                data.pull_requests[0].number
               );
-              const conclusion = data.success ? 'success' : 'failure';
+              const conclusion = report.success ? 'success' : 'failure';
               console.log('conclusion', conclusion);
-              yield (0, checksApi_1.updateCheckRun)(octokit, checkId, conclusion, data.annotations, 'completed');
+              yield (0, checksApi_1.updateCheckRun)(octokit, checkId, conclusion, report.annotations, 'completed');
             } else {
               console.log('pullRequest', pullRequest);
               // await closeStatusCheck(octokit, conclusion, checkId, data.summary);
@@ -14239,10 +14249,8 @@
       const eslintReportFile = core.getInput('eslint-report-json', { required: true });
       // If this is a pull request, store the context
       // Otherwise, set to false
-      // const isPullRequest = Object.prototype.hasOwnProperty.call(github.context.payload, 'pull_request');
-      // const pullRequest = (isPullRequest ? github.context.payload.pull_request : false) as PullRequest;
-      const isPullRequest = false;
-      const pullRequest = false;
+      const isPullRequest = Object.prototype.hasOwnProperty.call(github.context.payload, 'pull_request');
+      const pullRequest = isPullRequest ? github.context.payload.pull_request : false;
       exports['default'] = {
         token: githubToken,
         sha: sha,

@@ -11,10 +11,8 @@ const checkName = core.getInput('check-name') || 'ESLint Annotation Report Analy
 const eslintReportFile = core.getInput('eslint-report-json', { required: true });
 // If this is a pull request, store the context
 // Otherwise, set to false
-// const isPullRequest = Object.prototype.hasOwnProperty.call(github.context.payload, 'pull_request');
-// const pullRequest = (isPullRequest ? github.context.payload.pull_request : false) as PullRequest;
-const isPullRequest = false;
-const pullRequest = false as any;
+const isPullRequest = Object.prototype.hasOwnProperty.call(github.context.payload, 'pull_request');
+const pullRequest = (isPullRequest ? github.context.payload.pull_request : false) as PullRequest;
 export default {
   token: githubToken,
   sha: sha,
