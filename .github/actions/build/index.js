@@ -14162,19 +14162,17 @@
             const { checkId, pullRequest } = yield (0, checksApi_1.createStatusCheck)(octokit);
             console.log('checkId', checkId);
             console.log('pullRequest', pullRequest);
-            if (pullRequest.length) {
-              const report = yield (0, analyzedReport_1.getPullRequestChangedAnalyzedReport)(
-                parsedEslintReportJs,
-                octokit,
-                pullRequest[0].number
-              );
-              const conclusion = report.success ? 'success' : 'failure';
-              console.log('conclusion', conclusion);
-              if (report.annotations.length) {
-                yield (0, checksApi_1.updateCheckRun)(octokit, checkId, conclusion, report.annotations, 'completed');
-              } else {
-                yield (0, checksApi_1.closeStatusCheck)(octokit, 'success', checkId, analyzedReport);
-              }
+            const report = yield (0, analyzedReport_1.getPullRequestChangedAnalyzedReport)(
+              parsedEslintReportJs,
+              octokit,
+              pullRequest[0].number
+            );
+            const conclusion = report.success ? 'success' : 'failure';
+            console.log('conclusion', conclusion);
+            if (report.annotations.length) {
+              yield (0, checksApi_1.updateCheckRun)(octokit, checkId, conclusion, report.annotations, 'completed');
+            } else {
+              yield (0, checksApi_1.closeStatusCheck)(octokit, 'success', checkId, analyzedReport);
             }
           } catch (e) {
             const error = e;

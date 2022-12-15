@@ -17,16 +17,13 @@ import { createStatusCheck, updateCheckRun, closeStatusCheck } from './checksApi
     const { checkId, pullRequest } = await createStatusCheck(octokit);
     console.log('checkId', checkId);
     console.log('pullRequest', pullRequest);
-
-    if (pullRequest.length) {
-      const report = await getPullRequestChangedAnalyzedReport(parsedEslintReportJs, octokit, pullRequest[0].number);
-      const conclusion = report.success ? 'success' : 'failure';
-      console.log('conclusion', conclusion);
-      if (report.annotations.length) {
-        await updateCheckRun(octokit, checkId, conclusion, report.annotations, 'completed');
-      } else {
-        await closeStatusCheck(octokit, 'success', checkId, analyzedReport);
-      }
+    const report = await getPullRequestChangedAnalyzedReport(parsedEslintReportJs, octokit, pullRequest[0].number);
+    const conclusion = report.success ? 'success' : 'failure';
+    console.log('conclusion', conclusion);
+    if (report.annotations.length) {
+      await updateCheckRun(octokit, checkId, conclusion, report.annotations, 'completed');
+    } else {
+      await closeStatusCheck(octokit, 'success', checkId, analyzedReport);
     }
   } catch (e) {
     const error = e as Error;
