@@ -29,13 +29,7 @@ jobs:
             ${{ runner.os }}-modules-
       - name: Install dependencies
         if: steps.yarn-cache.outputs.cache-hit != 'true'
-        run: yarn install 
-<<<<<<< Updated upstream
-      - name: Generate eslint Report
-        run: yarn lint:report
-        continue-on-error: true
-=======
->>>>>>> Stashed changes
+        run: yarn install
       - name: Annotate Eslint on PR files
         uses: ./.github/actions/
         with: 
