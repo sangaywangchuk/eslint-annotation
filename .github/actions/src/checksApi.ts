@@ -55,8 +55,8 @@ export const updateCheckRun = async (
   for (let batch = 1; batch <= numBatches; batch++) {
     const batchMessage = `Found ${numberOfAnnotations} ESLint errors and warnings, processing batch ${batch} of ${numBatches}...`;
     const annotationBatch = annotations.splice(0, batchSize);
-    status = batch>=numBatches? 'completed' : 'in_progress';
-    const finalConclusion = status==='completed'? conclusion: null;
+    status = batch >= numBatches ? 'completed' : 'in_progress';
+    const finalConclusion = status === 'completed' ? conclusion : null;
     const { data } = await octokit.rest.checks.update({
       ...ownership,
       check_run_id: checkId,
@@ -75,7 +75,7 @@ export const updateCheckRun = async (
         previews: ['antiope'],
       },
     });
-    console.log('status');
+    console.log('update status');
     console.log('updated data: ', data);
   }
 };
