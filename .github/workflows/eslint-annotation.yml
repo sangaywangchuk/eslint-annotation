@@ -36,4 +36,3 @@ jobs:
         with:
           token: ${{secrets.GITHUB_TOKEN}}
           eslint-report-json: 'eslint-report.json'
-        core.setFailed('envA and envB are not equivalent!')
