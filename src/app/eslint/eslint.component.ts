@@ -6,9 +6,9 @@ import { asdf } from '@angular/core'
   styleUrls: ['./eslint.component.scss']
 })
 export class EslintComponent implements OnInit {
-  constructor(){
-
+  asdfsdf: any;
+  
+  constructor(private he){
   }
-  s = asdf;
-  jell
+
 }
