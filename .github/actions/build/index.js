@@ -13948,7 +13948,7 @@
             })
           );
           console.log('data', data);
-          return { checkId: data.id, pullRequest: data.pull_requests };
+          return { checkId: data.id, pullRequest: data.pull_requests || [] };
         });
       exports.createStatusCheck = createStatusCheck;
       /**
@@ -14025,6 +14025,7 @@
           } catch (err) {
             const error = err;
             core.debug(error.toString());
+            console.log('hello');
             core.setFailed(error.message + 'Annotation updated failed');
           }
         });
@@ -14162,16 +14163,19 @@
             const { checkId, pullRequest } = yield (0, checksApi_1.createStatusCheck)(octokit);
             console.log('checkId', checkId);
             console.log('pullRequest', pullRequest);
-            const report = yield (0, analyzedReport_1.getPullRequestChangedAnalyzedReport)(
-              parsedEslintReportJs,
-              octokit,
-              pullRequest[0].number
-            );
-            const conclusion = report.success ? 'success' : 'failure';
-            console.log('conclusion', conclusion);
-            if (report.annotations.length) {
-              yield (0, checksApi_1.updateCheckRun)(octokit, checkId, conclusion, report.annotations, 'completed');
+            if (pullRequest.length) {
+              const report = yield (0, analyzedReport_1.getPullRequestChangedAnalyzedReport)(
+                parsedEslintReportJs,
+                octokit,
+                pullRequest[0].number
+              );
+              const conclusion = report.success ? 'success' : 'failure';
+              console.log('conclusion', conclusion);
+              if (report.annotations.length) {
+                yield (0, checksApi_1.updateCheckRun)(octokit, checkId, conclusion, report.annotations, 'completed');
+              }
             } else {
+              console.log('close print exit');
               yield (0, checksApi_1.closeStatusCheck)(octokit, 'success', checkId, analyzedReport);
             }
           } catch (e) {

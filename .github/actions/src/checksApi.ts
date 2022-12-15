@@ -26,7 +26,7 @@ export const createStatusCheck = async (
     },
   });
   console.log('data', data);
-  return { checkId: data.id, pullRequest: data.pull_requests };
+  return { checkId: data.id, pullRequest: data.pull_requests || [] };
 };
 
 /**
@@ -110,6 +110,7 @@ export const closeStatusCheck = async (
   } catch (err) {
     const error = err as Error;
     core.debug(error.toString());
+    console.log('hello');
     core.setFailed(error.message + 'Annotation updated failed');
   }
 };
