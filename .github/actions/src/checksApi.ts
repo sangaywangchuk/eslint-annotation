@@ -93,20 +93,25 @@ export const closeStatusCheck = async (
     console.log('checkId: ', checkId);
     // https://developer.github.com/v3/checks/runs/#create-a-check-run
     // https://octokit.github.io/rest.js/v16#checks-create
-    const { data } = await octokit.rest.checks.create({
+    const { data } = await octokit.rest.checks.update({
       ...ownership,
-      head_sha: sha,
-      name: checkName,
+      check_run_id: checkId,
       status: 'completed',
       conclusion,
-      completed_at: formatDate(),
-      check_run_id: checkId,
       output: {
         title: checkName,
-        text: analyzedReport.markdown,
         summary: analyzedReport.summary,
+        text: analyzedReport.markdown,
+      },
+      /**
+       * The check run API is still in beta and the developer preview must be opted into
+       * See https://developer.github.com/changes/2018-05-07-new-checks-api-public-beta/
+       */
+      mediaType: {
+        previews: ['antiope'],
       },
     });
+    console.log('closeStatusCheck: ', data);
   } catch (err) {
     const error = err as Error;
     core.debug(error.toString());
