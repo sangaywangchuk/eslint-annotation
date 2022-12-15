@@ -13691,6 +13691,7 @@
        * @param files a JavaScript representation of an ESLint JSON report
        */
       function getAnalyzedReport(files) {
+        console.log('getAnalyzedReport');
         // Create markdown placeholder
         let markdownText = '';
         // Start the error and warning counts at 0
@@ -13795,6 +13796,7 @@
       exports['default'] = getAnalyzedReport;
       function getPullRequestChangedAnalyzedReport(reportJS, octokit) {
         return __awaiter(this, void 0, void 0, function* () {
+          console.log('getPullRequestChangedAnalyzedReport');
           const { data } = yield octokit.rest.pulls.listFiles({
             owner: owner,
             repo: repo,
@@ -14159,7 +14161,7 @@
             // await closeStatusCheck(octokit, conclusion, checkId, data.summary);
           } catch (e) {
             const error = e;
-            core.debug(error.toString());
+            console.log('personal error: ', error.toString());
             core.setFailed(error.message);
           }
         }))();

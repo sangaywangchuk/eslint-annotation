@@ -8,6 +8,7 @@ const { sha, githubContext, owner, repo, checkName, eslintReportFile, githubWork
  * @param files a JavaScript representation of an ESLint JSON report
  */
 export default function getAnalyzedReport(files: ESLintReport): AnalyzedESLintReport {
+  console.log('getAnalyzedReport');
   // Create markdown placeholder
   let markdownText = '';
 
@@ -135,6 +136,7 @@ export async function getPullRequestChangedAnalyzedReport(
   reportJS: ESLintReport,
   octokit: InstanceType<typeof GitHub>
 ): Promise<AnalyzedESLintReport> {
+  console.log('getPullRequestChangedAnalyzedReport');
   const { data } = await octokit.rest.pulls.listFiles({
     owner: owner,
     repo: repo,

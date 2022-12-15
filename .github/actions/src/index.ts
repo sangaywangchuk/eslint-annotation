@@ -26,7 +26,7 @@ import { GitHub } from '@actions/github/lib/utils';
     // await closeStatusCheck(octokit, conclusion, checkId, data.summary);
   } catch (e) {
     const error = e as Error;
-    core.debug(error.toString());
+    console.log('personal error: ', error.toString());
     core.setFailed(error.message);
   }
 })();
