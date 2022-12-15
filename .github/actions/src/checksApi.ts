@@ -95,7 +95,8 @@ export const closeStatusCheck = async (
     // https://octokit.github.io/rest.js/v16#checks-create
     const { data } = await octokit.rest.checks.create({
       ...ownership,
-      name: 'create Pull request to see to more result',
+      head_sha: sha,
+      name: checkName,
       status: 'completed',
       conclusion,
       completed_at: formatDate(),
@@ -109,6 +110,7 @@ export const closeStatusCheck = async (
   } catch (err) {
     const error = err as Error;
     core.debug(error.toString());
+    console.log('hello');
     core.setFailed(error.message + 'Annotation updated failed');
   }
 };

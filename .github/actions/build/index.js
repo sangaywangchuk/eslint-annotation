@@ -14009,7 +14009,8 @@
             // https://octokit.github.io/rest.js/v16#checks-create
             const { data } = yield octokit.rest.checks.create(
               Object.assign(Object.assign({}, ownership), {
-                name: 'create Pull request to see to more result',
+                head_sha: sha,
+                name: checkName,
                 status: 'completed',
                 conclusion,
                 completed_at: formatDate(),
@@ -14024,6 +14025,7 @@
           } catch (err) {
             const error = err;
             core.debug(error.toString());
+            console.log('hello');
             core.setFailed(error.message + 'Annotation updated failed');
           }
         });
