@@ -2,28 +2,30 @@ import * as core from '@actions/core';
 import * as github from '@actions/github';
 import eslintJsonReportToJsObject from './eslintReportJsonToObject';
 import inputs from './inputs';
-import getAnalyzedReport from './analyzedReport';
-import { createStatusCheck } from './checksApi';
+import getAnalyzedReport, { getPullRequestChangedAnalyzedReport } from './analyzedReport';
+import { createStatusCheck, updateCheckRun, closeStatusCheck } from './checksApi';
+import { GitHub } from '@actions/github/lib/utils';
 (async () => {
-  /**
-   * get User inputs
-   */
-
   try {
-    const { token, sha, githubContext, owner, repo, checkName, eslintReportFile } = inputs;
-    console.log('inputs', inputs);
-    const parsedEslintReportJs = eslintJsonReportToJsObject(eslintReportFile);
-    const analyzedReport = getAnalyzedReport(parsedEslintReportJs);
-    const annotations = analyzedReport.annotations;
-    console.log('annotations: ', annotations);
-    const conclusion = analyzedReport.success ? 'success' : 'failure';
-    console.log('conclusion: ', conclusion);
-    console.log('summery: ', analyzedReport.summary);
     core.debug(`Starting analysis of the ESLint report json to javascript object`);
-    const octokit = github.getOctokit(inputs.token);
+    const { token, eslintReportFile, pullRequest, repo, owner } = inputs;
+    console.log('inputs: ', inputs);
+    const parsedEslintReportJs = eslintJsonReportToJsObject(eslintReportFile);
+    console.log('parsedEslintReportJs: ', parsedEslintReportJs);
+    const analyzedReport = getAnalyzedReport(parsedEslintReportJs);
+    console.log('analyzedReport: ', analyzedReport);
+    const octokit = github.getOctokit(token);
     const checkId = await createStatusCheck(octokit);
-    console.log('checkId', checkId);
-    console.log('octokit', octokit);
+
+
+
+    const data = await getPullRequestChangedAnalyzedReport(parsedEslintReportJs, octokit);
+
+    const conclusion = data.success ? 'success' : 'failure';
+    console.log('conclusion', conclusion);
+    await updateCheckRun(octokit, checkId, conclusion, data.annotations, 'completed');
+
+    // await closeStatusCheck(octokit, conclusion, checkId, data.summary);
   } catch (e) {
     const error = e as Error;
     core.debug(error.toString());

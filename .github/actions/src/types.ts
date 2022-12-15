@@ -1,6 +1,5 @@
 import { RestEndpointMethodTypes } from '@octokit/plugin-rest-endpoint-methods';
 import { operations } from '@octokit/openapi-types';
-import { WebhookEvents } from '@octokit/webhooks-types';
 
 export type PullRequest = RestEndpointMethodTypes['pulls']['get']['response']['data'];
 
@@ -13,26 +12,6 @@ export type Annotations = NonNullable<Output['annotations']>;
 export type Images = NonNullable<Output['images']>;
 
 export type Actions = NonNullable<ChecksCreate['actions']>;
-// export type Output = {
-//   summary: string;
-//   text_description?: string;
-// };
-
-export enum Conclusion {
-  Success = 'success',
-  Failure = 'failure',
-  Neutral = 'neutral',
-  Cancelled = 'cancelled',
-  TimedOut = 'timed_out',
-  ActionRequired = 'action_required',
-}
-
-export enum Status {
-  Queued = 'queued',
-  InProgress = 'in_progress',
-  Completed = 'completed',
-}
-
 export interface ChecksUpdateParamsOutputAnnotations {
   path: string;
   start_line: number;
@@ -44,7 +23,6 @@ export interface ChecksUpdateParamsOutputAnnotations {
   title?: string;
   raw_details?: string;
 }
-
 export interface ESLintMessage {
   ruleId: string;
   severity: number;
@@ -60,7 +38,6 @@ export interface ESLintMessage {
   };
   messageId?: string;
 }
-
 export interface ESLintEntry {
   filePath: string;
   messages: ESLintMessage[];
@@ -73,7 +50,6 @@ export interface ESLintEntry {
 }
 
 export type ESLintReport = ESLintEntry[];
-
 export interface AnalyzedESLintReport {
   errorCount: number;
   warningCount: number;
@@ -82,7 +58,6 @@ export interface AnalyzedESLintReport {
   summary: string;
   annotations: ChecksUpdateParamsOutputAnnotations[];
 }
-
 export interface RollupReport {
   errorCount: number;
   warningCount: number;
@@ -97,27 +72,3 @@ export interface FileSet {
   name: string;
   files: ESLintEntry[];
 }
-
-interface ArgsBase {
-  repo?: string;
-  sha?: string;
-  token: string;
-  conclusion?: Conclusion;
-  status: Status;
-  actionURL?: string;
-  detailsURL?: string;
-  output?: Output;
-  annotations?: Annotations;
-  images?: Images;
-  actions?: Actions;
-}
-
-export interface ArgsCreate extends ArgsBase {
-  name: string;
-}
-
-export interface ArgsUpdate extends ArgsBase {
-  checkID: number;
-}
-
-export type Args = ArgsCreate | ArgsUpdate;
