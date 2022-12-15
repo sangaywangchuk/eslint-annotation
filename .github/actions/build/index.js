@@ -13806,7 +13806,7 @@
           const { data } = yield octokit.rest.pulls.listFiles({
             owner: owner,
             repo: repo,
-            pull_number: pullRequest.number,
+            pull_number: number,
           });
           console.log('githubWorkSpace: ', githubWorkSpace);
           const changedFiles = data.map((prFiles) => prFiles.filename);
