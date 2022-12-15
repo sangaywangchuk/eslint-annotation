@@ -13691,6 +13691,7 @@
        * @param files a JavaScript representation of an ESLint JSON report
        */
       function getAnalyzedReport(files) {
+        console.log('getAnalyzedReport');
         // Create markdown placeholder
         let markdownText = '';
         // Start the error and warning counts at 0
@@ -13793,12 +13794,19 @@
         };
       }
       exports['default'] = getAnalyzedReport;
-      function getPullRequestChangedAnalyzedReport(reportJS, octokit) {
+      function getPullRequestChangedAnalyzedReport(reportJS, octokit, number) {
         return __awaiter(this, void 0, void 0, function* () {
+          console.log('getPullRequestChangedAnalyzedReport');
+          const a = {
+            owner: owner,
+            repo: repo,
+            pull_number: number,
+          };
+          console.log('octokit.rest.pulls.listFiles: ', a);
           const { data } = yield octokit.rest.pulls.listFiles({
             owner: owner,
             repo: repo,
-            pull_number: pullRequest.number,
+            pull_number: number,
           });
           console.log('githubWorkSpace: ', githubWorkSpace);
           const changedFiles = data.map((prFiles) => prFiles.filename);
@@ -13940,7 +13948,7 @@
             })
           );
           console.log('data', data);
-          return data.id;
+          return { checkId: data.id, pullRequest: data.pull_requests };
         });
       exports.createStatusCheck = createStatusCheck;
       /**
@@ -13992,7 +14000,7 @@
           }
         });
       exports.updateCheckRun = updateCheckRun;
-      const closeStatusCheck = (octokit, conclusion, checkId, summary) =>
+      const closeStatusCheck = (octokit, conclusion, checkId, analyzedReport) =>
         __awaiter(void 0, void 0, void 0, function* () {
           try {
             console.log('conclusion: ', conclusion);
@@ -14009,7 +14017,8 @@
                 check_run_id: checkId,
                 output: {
                   title: checkName,
-                  summary: summary,
+                  text: analyzedReport.markdown,
+                  summary: analyzedReport.summary,
                 },
               })
             );
@@ -14137,29 +14146,37 @@
       const github = __importStar(__nccwpck_require__(5438));
       const eslintReportJsonToObject_1 = __importDefault(__nccwpck_require__(1253));
       const inputs_1 = __importDefault(__nccwpck_require__(7063));
-      const analyzedReport_1 = __nccwpck_require__(185);
+      const analyzedReport_1 = __importStar(__nccwpck_require__(185));
       const checksApi_1 = __nccwpck_require__(4999);
       (() =>
         __awaiter(void 0, void 0, void 0, function* () {
           try {
             core.debug(`Starting analysis of the ESLint report json to javascript object`);
-            const { token, eslintReportFile, pullRequest, repo, owner } = inputs_1.default;
+            const { token, sha, checkName, eslintReportFile, ownership, repo, owner } = inputs_1.default;
             console.log('inputs: ', inputs_1.default);
             const parsedEslintReportJs = (0, eslintReportJsonToObject_1.default)(eslintReportFile);
             console.log('parsedEslintReportJs: ', parsedEslintReportJs);
-            // const analyzedReport = getAnalyzedReport(parsedEslintReportJs);
+            const analyzedReport = (0, analyzedReport_1.default)(parsedEslintReportJs);
             // console.log('analyzedReport: ', analyzedReport);
             const octokit = github.getOctokit(token);
-            const checkId = yield (0, checksApi_1.createStatusCheck)(octokit);
+            const { checkId, pullRequest } = yield (0, checksApi_1.createStatusCheck)(octokit);
             console.log('checkId', checkId);
-            const data = yield (0, analyzedReport_1.getPullRequestChangedAnalyzedReport)(parsedEslintReportJs, octokit);
-            const conclusion = data.success ? 'success' : 'failure';
+            console.log('pullRequest', pullRequest);
+            const report = yield (0, analyzedReport_1.getPullRequestChangedAnalyzedReport)(
+              parsedEslintReportJs,
+              octokit,
+              pullRequest[0].number
+            );
+            const conclusion = report.success ? 'success' : 'failure';
             console.log('conclusion', conclusion);
-            yield (0, checksApi_1.updateCheckRun)(octokit, checkId, conclusion, data.annotations, 'completed');
-            // await closeStatusCheck(octokit, conclusion, checkId, data.summary);
+            if (report.annotations.length) {
+              yield (0, checksApi_1.updateCheckRun)(octokit, checkId, conclusion, report.annotations, 'completed');
+            } else {
+              yield (0, checksApi_1.closeStatusCheck)(octokit, 'success', checkId, analyzedReport);
+            }
           } catch (e) {
             const error = e;
-            core.debug(error.toString());
+            console.log('personal error: ', error.toString());
             core.setFailed(error.message);
           }
         }))();

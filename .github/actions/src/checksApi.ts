@@ -2,7 +2,7 @@ import inputs from './inputs';
 import * as core from '@actions/core';
 const { sha, ownership, checkName, repo, owner, pullRequest } = inputs;
 import { GitHub } from '@actions/github/lib/utils';
-import { ChecksUpdateParamsOutputAnnotations } from './types';
+import { AnalyzedESLintReport, ChecksUpdateParamsOutputAnnotations, PullRequest } from './types';
 /**
  * Create a new GitHub check run
  * @param options octokit.checks.create parameters
@@ -12,7 +12,9 @@ const formatDate = (): string => {
   return new Date().toISOString();
 };
 
-export const createStatusCheck = async (octokit: InstanceType<typeof GitHub>): Promise<number> => {
+export const createStatusCheck = async (
+  octokit: InstanceType<typeof GitHub>
+): Promise<{ checkId: number; pullRequest: any }> => {
   const { data } = await octokit.rest.checks.create({
     ...ownership,
     started_at: formatDate(),
@@ -24,7 +26,7 @@ export const createStatusCheck = async (octokit: InstanceType<typeof GitHub>): P
     },
   });
   console.log('data', data);
-  return data.id;
+  return { checkId: data.id, pullRequest: data.pull_requests };
 };
 
 /**
@@ -84,7 +86,7 @@ export const closeStatusCheck = async (
   octokit: InstanceType<typeof GitHub>,
   conclusion: string,
   checkId: number,
-  summary: string
+  analyzedReport: AnalyzedESLintReport
 ): Promise<void> => {
   try {
     console.log('conclusion: ', conclusion);
@@ -101,7 +103,8 @@ export const closeStatusCheck = async (
       check_run_id: checkId,
       output: {
         title: checkName,
-        summary: summary,
+        text: analyzedReport.markdown,
+        summary: analyzedReport.summary,
       },
     });
   } catch (err) {

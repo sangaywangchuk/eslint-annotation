@@ -8,6 +8,7 @@ const { sha, githubContext, owner, repo, checkName, eslintReportFile, githubWork
  * @param files a JavaScript representation of an ESLint JSON report
  */
 export default function getAnalyzedReport(files: ESLintReport): AnalyzedESLintReport {
+  console.log('getAnalyzedReport');
   // Create markdown placeholder
   let markdownText = '';
 
@@ -133,12 +134,20 @@ export default function getAnalyzedReport(files: ESLintReport): AnalyzedESLintRe
 
 export async function getPullRequestChangedAnalyzedReport(
   reportJS: ESLintReport,
-  octokit: InstanceType<typeof GitHub>
+  octokit: InstanceType<typeof GitHub>,
+  number: number
 ): Promise<AnalyzedESLintReport> {
+  console.log('getPullRequestChangedAnalyzedReport');
+  const a = {
+    owner: owner,
+    repo: repo,
+    pull_number: number,
+  };
+  console.log('octokit.rest.pulls.listFiles: ', a);
   const { data } = await octokit.rest.pulls.listFiles({
     owner: owner,
     repo: repo,
-    pull_number: pullRequest.number,
+    pull_number: number,
   });
   console.log('githubWorkSpace: ', githubWorkSpace);
   const changedFiles = data.map((prFiles) => prFiles.filename);
