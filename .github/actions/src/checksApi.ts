@@ -95,8 +95,7 @@ export const closeStatusCheck = async (
     // https://octokit.github.io/rest.js/v16#checks-create
     const { data } = await octokit.rest.checks.create({
       ...ownership,
-      head_sha: sha,
-      name: checkName,
+      name: 'create Pull request to see to more result',
       status: 'completed',
       conclusion,
       completed_at: formatDate(),

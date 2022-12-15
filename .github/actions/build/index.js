@@ -14009,8 +14009,7 @@
             // https://octokit.github.io/rest.js/v16#checks-create
             const { data } = yield octokit.rest.checks.create(
               Object.assign(Object.assign({}, ownership), {
-                head_sha: sha,
-                name: checkName,
+                name: 'create Pull request to see to more result',
                 status: 'completed',
                 conclusion,
                 completed_at: formatDate(),
@@ -14162,16 +14161,19 @@
             const { checkId, pullRequest } = yield (0, checksApi_1.createStatusCheck)(octokit);
             console.log('checkId', checkId);
             console.log('pullRequest', pullRequest);
-            const report = yield (0, analyzedReport_1.getPullRequestChangedAnalyzedReport)(
-              parsedEslintReportJs,
-              octokit,
-              pullRequest[0].number
-            );
-            const conclusion = report.success ? 'success' : 'failure';
-            console.log('conclusion', conclusion);
-            if (report.annotations.length) {
-              yield (0, checksApi_1.updateCheckRun)(octokit, checkId, conclusion, report.annotations, 'completed');
+            if (pullRequest.length) {
+              const report = yield (0, analyzedReport_1.getPullRequestChangedAnalyzedReport)(
+                parsedEslintReportJs,
+                octokit,
+                pullRequest[0].number
+              );
+              const conclusion = report.success ? 'success' : 'failure';
+              console.log('conclusion', conclusion);
+              if (report.annotations.length) {
+                yield (0, checksApi_1.updateCheckRun)(octokit, checkId, conclusion, report.annotations, 'completed');
+              }
             } else {
+              console.log('close print exit');
               yield (0, checksApi_1.closeStatusCheck)(octokit, 'success', checkId, analyzedReport);
             }
           } catch (e) {
