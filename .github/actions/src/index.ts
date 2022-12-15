@@ -11,7 +11,7 @@ import { createStatusCheck, updateCheckRun, closeStatusCheck } from './checksApi
     console.log('inputs: ', inputs);
     const parsedEslintReportJs = eslintJsonReportToJsObject(eslintReportFile);
     console.log('parsedEslintReportJs: ', parsedEslintReportJs);
-    // const analyzedReport = getAnalyzedReport(parsedEslintReportJs);
+    const analyzedReport = getAnalyzedReport(parsedEslintReportJs);
     // console.log('analyzedReport: ', analyzedReport);
     const octokit = github.getOctokit(token);
     const { checkId, pullRequest } = await createStatusCheck(octokit);
@@ -22,10 +22,11 @@ import { createStatusCheck, updateCheckRun, closeStatusCheck } from './checksApi
       const report = await getPullRequestChangedAnalyzedReport(parsedEslintReportJs, octokit, pullRequest[0].number);
       const conclusion = report.success ? 'success' : 'failure';
       console.log('conclusion', conclusion);
-      await updateCheckRun(octokit, checkId, conclusion, report.annotations, 'completed');
-    } else {
-      console.log('pullRequest', pullRequest);
-      // await closeStatusCheck(octokit, conclusion, checkId, data.summary);
+      if (report.annotations.length) {
+        await updateCheckRun(octokit, checkId, conclusion, report.annotations, 'completed');
+      } else {
+        await closeStatusCheck(octokit, 'success', checkId, analyzedReport);
+      }
     }
   } catch (e) {
     const error = e as Error;

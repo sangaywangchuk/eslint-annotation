@@ -2,7 +2,7 @@ import inputs from './inputs';
 import * as core from '@actions/core';
 const { sha, ownership, checkName, repo, owner, pullRequest } = inputs;
 import { GitHub } from '@actions/github/lib/utils';
-import { ChecksUpdateParamsOutputAnnotations, PullRequest } from './types';
+import { AnalyzedESLintReport, ChecksUpdateParamsOutputAnnotations, PullRequest } from './types';
 /**
  * Create a new GitHub check run
  * @param options octokit.checks.create parameters
@@ -86,7 +86,7 @@ export const closeStatusCheck = async (
   octokit: InstanceType<typeof GitHub>,
   conclusion: string,
   checkId: number,
-  summary: string
+  analyzedReport: AnalyzedESLintReport
 ): Promise<void> => {
   try {
     console.log('conclusion: ', conclusion);
@@ -103,7 +103,8 @@ export const closeStatusCheck = async (
       check_run_id: checkId,
       output: {
         title: checkName,
-        summary: summary,
+        text: analyzedReport.markdown,
+        summary: analyzedReport.summary,
       },
     });
   } catch (err) {

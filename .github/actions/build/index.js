@@ -14000,7 +14000,7 @@
           }
         });
       exports.updateCheckRun = updateCheckRun;
-      const closeStatusCheck = (octokit, conclusion, checkId, summary) =>
+      const closeStatusCheck = (octokit, conclusion, checkId, analyzedReport) =>
         __awaiter(void 0, void 0, void 0, function* () {
           try {
             console.log('conclusion: ', conclusion);
@@ -14017,7 +14017,8 @@
                 check_run_id: checkId,
                 output: {
                   title: checkName,
-                  summary: summary,
+                  text: analyzedReport.markdown,
+                  summary: analyzedReport.summary,
                 },
               })
             );
@@ -14145,7 +14146,7 @@
       const github = __importStar(__nccwpck_require__(5438));
       const eslintReportJsonToObject_1 = __importDefault(__nccwpck_require__(1253));
       const inputs_1 = __importDefault(__nccwpck_require__(7063));
-      const analyzedReport_1 = __nccwpck_require__(185);
+      const analyzedReport_1 = __importStar(__nccwpck_require__(185));
       const checksApi_1 = __nccwpck_require__(4999);
       (() =>
         __awaiter(void 0, void 0, void 0, function* () {
@@ -14155,7 +14156,7 @@
             console.log('inputs: ', inputs_1.default);
             const parsedEslintReportJs = (0, eslintReportJsonToObject_1.default)(eslintReportFile);
             console.log('parsedEslintReportJs: ', parsedEslintReportJs);
-            // const analyzedReport = getAnalyzedReport(parsedEslintReportJs);
+            const analyzedReport = (0, analyzedReport_1.default)(parsedEslintReportJs);
             // console.log('analyzedReport: ', analyzedReport);
             const octokit = github.getOctokit(token);
             const { checkId, pullRequest } = yield (0, checksApi_1.createStatusCheck)(octokit);
@@ -14169,10 +14170,11 @@
               );
               const conclusion = report.success ? 'success' : 'failure';
               console.log('conclusion', conclusion);
-              yield (0, checksApi_1.updateCheckRun)(octokit, checkId, conclusion, report.annotations, 'completed');
-            } else {
-              console.log('pullRequest', pullRequest);
-              // await closeStatusCheck(octokit, conclusion, checkId, data.summary);
+              if (report.annotations.length) {
+                yield (0, checksApi_1.updateCheckRun)(octokit, checkId, conclusion, report.annotations, 'completed');
+              } else {
+                yield (0, checksApi_1.closeStatusCheck)(octokit, 'success', checkId, analyzedReport);
+              }
             }
           } catch (e) {
             const error = e;
