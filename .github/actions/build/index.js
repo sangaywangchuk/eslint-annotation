@@ -13838,6 +13838,46 @@
     /***/ 4999: /***/ function (__unused_webpack_module, exports, __nccwpck_require__) {
       'use strict';
 
+      var __createBinding =
+        (this && this.__createBinding) ||
+        (Object.create
+          ? function (o, m, k, k2) {
+              if (k2 === undefined) k2 = k;
+              var desc = Object.getOwnPropertyDescriptor(m, k);
+              if (!desc || ('get' in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+                desc = {
+                  enumerable: true,
+                  get: function () {
+                    return m[k];
+                  },
+                };
+              }
+              Object.defineProperty(o, k2, desc);
+            }
+          : function (o, m, k, k2) {
+              if (k2 === undefined) k2 = k;
+              o[k2] = m[k];
+            });
+      var __setModuleDefault =
+        (this && this.__setModuleDefault) ||
+        (Object.create
+          ? function (o, v) {
+              Object.defineProperty(o, 'default', { enumerable: true, value: v });
+            }
+          : function (o, v) {
+              o['default'] = v;
+            });
+      var __importStar =
+        (this && this.__importStar) ||
+        function (mod) {
+          if (mod && mod.__esModule) return mod;
+          var result = {};
+          if (mod != null)
+            for (var k in mod)
+              if (k !== 'default' && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+          __setModuleDefault(result, mod);
+          return result;
+        };
       var __awaiter =
         (this && this.__awaiter) ||
         function (thisArg, _arguments, P, generator) {
@@ -13877,6 +13917,7 @@
       Object.defineProperty(exports, '__esModule', { value: true });
       exports.closeStatusCheck = exports.updateCheckRun = exports.createStatusCheck = void 0;
       const inputs_1 = __importDefault(__nccwpck_require__(7063));
+      const core = __importStar(__nccwpck_require__(2186));
       const { sha, ownership, checkName, repo, owner, pullRequest } = inputs_1.default;
       /**
        * Create a new GitHub check run
@@ -13907,7 +13948,7 @@
        * @param annotations an array of annotation objects. See https://developer.github.com/v3/checks/runs/#annotations-object-1
        * @param checkId the ID of the check run to add annotations to
        */
-      const updateCheckRun = (octokit, checkId, conclusion, annotations) =>
+      const updateCheckRun = (octokit, checkId, conclusion, annotations, status) =>
         __awaiter(void 0, void 0, void 0, function* () {
           /**
            * Update the GitHub check with the
@@ -13925,11 +13966,13 @@
           for (let batch = 1; batch <= numBatches; batch++) {
             const batchMessage = `Found ${numberOfAnnotations} ESLint errors and warnings, processing batch ${batch} of ${numBatches}...`;
             const annotationBatch = annotations.splice(0, batchSize);
+            status = batch >= numBatches ? 'completed' : 'in_progress';
+            const finalConclusion = status === 'completed' ? conclusion : null;
             const { data } = yield octokit.rest.checks.update(
               Object.assign(Object.assign({}, ownership), {
                 check_run_id: checkId,
-                status: 'completed',
-                conclusion,
+                status,
+                conclusion: finalConclusion,
                 output: {
                   title: checkName,
                   summary: batchMessage,
@@ -13944,30 +13987,37 @@
                 },
               })
             );
-            console.log('status');
-            console.log('status: ', data);
+            console.log('update status');
+            console.log('updated response: ', data);
           }
         });
       exports.updateCheckRun = updateCheckRun;
       const closeStatusCheck = (octokit, conclusion, checkId, summary) =>
         __awaiter(void 0, void 0, void 0, function* () {
-          // https://developer.github.com/v3/checks/runs/#create-a-check-run
-          // https://octokit.github.io/rest.js/v16#checks-create
-          const { data } = yield octokit.rest.checks.create(
-            Object.assign(Object.assign({}, ownership), {
-              head_sha: sha,
-              name: checkName,
-              status: 'completed',
-              conclusion,
-              completed_at: formatDate(),
-              check_run_id: checkId,
-              output: {
-                title: checkName,
-                summary: summary,
-              },
-            })
-          );
-          console.log('closeStatusCheck: ', data);
+          try {
+            console.log('conclusion: ', conclusion);
+            console.log('checkId: ', checkId);
+            // https://developer.github.com/v3/checks/runs/#create-a-check-run
+            // https://octokit.github.io/rest.js/v16#checks-create
+            const { data } = yield octokit.rest.checks.create(
+              Object.assign(Object.assign({}, ownership), {
+                head_sha: sha,
+                name: checkName,
+                status: 'completed',
+                conclusion,
+                completed_at: formatDate(),
+                check_run_id: checkId,
+                output: {
+                  title: checkName,
+                  summary: summary,
+                },
+              })
+            );
+          } catch (err) {
+            const error = err;
+            core.debug(error.toString());
+            core.setFailed(error.message + 'Annotation updated failed');
+          }
         });
       exports.closeStatusCheck = closeStatusCheck;
 
@@ -14087,7 +14137,7 @@
       const github = __importStar(__nccwpck_require__(5438));
       const eslintReportJsonToObject_1 = __importDefault(__nccwpck_require__(1253));
       const inputs_1 = __importDefault(__nccwpck_require__(7063));
-      const analyzedReport_1 = __importStar(__nccwpck_require__(185));
+      const analyzedReport_1 = __nccwpck_require__(185);
       const checksApi_1 = __nccwpck_require__(4999);
       (() =>
         __awaiter(void 0, void 0, void 0, function* () {
@@ -14097,14 +14147,14 @@
             console.log('inputs: ', inputs_1.default);
             const parsedEslintReportJs = (0, eslintReportJsonToObject_1.default)(eslintReportFile);
             console.log('parsedEslintReportJs: ', parsedEslintReportJs);
-            const analyzedReport = (0, analyzedReport_1.default)(parsedEslintReportJs);
+            // const analyzedReport = getAnalyzedReport(parsedEslintReportJs);
             // console.log('analyzedReport: ', analyzedReport);
             const octokit = github.getOctokit(token);
             const checkId = yield (0, checksApi_1.createStatusCheck)(octokit);
             const data = yield (0, analyzedReport_1.getPullRequestChangedAnalyzedReport)(parsedEslintReportJs, octokit);
             const conclusion = data.success ? 'success' : 'failure';
             console.log('conclusion', conclusion);
-            yield (0, checksApi_1.updateCheckRun)(octokit, checkId, conclusion, data.annotations);
+            yield (0, checksApi_1.updateCheckRun)(octokit, checkId, conclusion, data.annotations, 'completed');
             // await closeStatusCheck(octokit, conclusion, checkId, data.summary);
           } catch (e) {
             const error = e;
