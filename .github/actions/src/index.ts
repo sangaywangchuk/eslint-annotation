@@ -16,6 +16,7 @@ import { GitHub } from '@actions/github/lib/utils';
     // console.log('analyzedReport: ', analyzedReport);
     const octokit = github.getOctokit(token);
     const checkId = await createStatusCheck(octokit);
+    console.log('checkId', checkId);
 
     const data = await getPullRequestChangedAnalyzedReport(parsedEslintReportJs, octokit);
 

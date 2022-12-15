@@ -76,7 +76,7 @@ export const updateCheckRun = async (
       },
     });
     console.log('update status');
-    console.log('updated response: ', data);
+    console.log('updated data: ', data);
   }
 };
 

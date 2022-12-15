@@ -13988,7 +13988,7 @@
               })
             );
             console.log('update status');
-            console.log('updated response: ', data);
+            console.log('updated data: ', data);
           }
         });
       exports.updateCheckRun = updateCheckRun;
@@ -14151,6 +14151,7 @@
             // console.log('analyzedReport: ', analyzedReport);
             const octokit = github.getOctokit(token);
             const checkId = yield (0, checksApi_1.createStatusCheck)(octokit);
+            console.log('checkId', checkId);
             const data = yield (0, analyzedReport_1.getPullRequestChangedAnalyzedReport)(parsedEslintReportJs, octokit);
             const conclusion = data.success ? 'success' : 'failure';
             console.log('conclusion', conclusion);
