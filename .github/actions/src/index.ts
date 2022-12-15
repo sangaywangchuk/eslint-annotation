@@ -18,11 +18,16 @@ import { GitHub } from '@actions/github/lib/utils';
     const checkId = await createStatusCheck(octokit);
     console.log('checkId', checkId);
 
-    const data = await getPullRequestChangedAnalyzedReport(parsedEslintReportJs, octokit);
+    if (pullRequest.number) {
+      console.log('pullRequest.number', pullRequest.number);
+      const data = await getPullRequestChangedAnalyzedReport(parsedEslintReportJs, octokit);
+      const conclusion = data.success ? 'success' : 'failure';
+      console.log('conclusion', conclusion);
+      await updateCheckRun(octokit, checkId, conclusion, data.annotations, 'completed');
+    } else {
+      console.log('pullRequest', pullRequest);
+    }
 
-    const conclusion = data.success ? 'success' : 'failure';
-    console.log('conclusion', conclusion);
-    await updateCheckRun(octokit, checkId, conclusion, data.annotations, 'completed');
     // await closeStatusCheck(octokit, conclusion, checkId, data.summary);
   } catch (e) {
     const error = e as Error;

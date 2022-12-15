@@ -14160,10 +14160,18 @@
             const octokit = github.getOctokit(token);
             const checkId = yield (0, checksApi_1.createStatusCheck)(octokit);
             console.log('checkId', checkId);
-            const data = yield (0, analyzedReport_1.getPullRequestChangedAnalyzedReport)(parsedEslintReportJs, octokit);
-            const conclusion = data.success ? 'success' : 'failure';
-            console.log('conclusion', conclusion);
-            yield (0, checksApi_1.updateCheckRun)(octokit, checkId, conclusion, data.annotations, 'completed');
+            if (pullRequest.number) {
+              console.log('pullRequest.number', pullRequest.number);
+              const data = yield (0, analyzedReport_1.getPullRequestChangedAnalyzedReport)(
+                parsedEslintReportJs,
+                octokit
+              );
+              const conclusion = data.success ? 'success' : 'failure';
+              console.log('conclusion', conclusion);
+              yield (0, checksApi_1.updateCheckRun)(octokit, checkId, conclusion, data.annotations, 'completed');
+            } else {
+              console.log('pullRequest', pullRequest);
+            }
             // await closeStatusCheck(octokit, conclusion, checkId, data.summary);
           } catch (e) {
             const error = e;
