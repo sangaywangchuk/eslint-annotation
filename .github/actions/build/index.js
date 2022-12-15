@@ -14160,17 +14160,8 @@
             const octokit = github.getOctokit(token);
             const { checkId, pullRequest } = yield (0, checksApi_1.createStatusCheck)(octokit);
             console.log('checkId', checkId);
-            const { data } = yield octokit.rest.checks.create(
-              Object.assign(Object.assign({}, ownership), {
-                name: checkName,
-                check_run_id: checkId,
-                output: {
-                  title: checkName,
-                },
-              })
-            );
+            console.log('pullRequest', pullRequest);
             if (pullRequest.length) {
-              console.log('pullRequest.number', pullRequest[0].number);
               const report = yield (0, analyzedReport_1.getPullRequestChangedAnalyzedReport)(
                 parsedEslintReportJs,
                 octokit,

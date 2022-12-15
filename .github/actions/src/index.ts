@@ -16,17 +16,9 @@ import { createStatusCheck, updateCheckRun, closeStatusCheck } from './checksApi
     const octokit = github.getOctokit(token);
     const { checkId, pullRequest } = await createStatusCheck(octokit);
     console.log('checkId', checkId);
-    const { data } = await octokit.rest.checks.create({
-      ...ownership,
-      name: checkName,
-      check_run_id: checkId,
-      output: {
-        title: checkName,
-      },
-    });
+    console.log('pullRequest', pullRequest);
 
     if (pullRequest.length) {
-      console.log('pullRequest.number', pullRequest[0].number);
       const report = await getPullRequestChangedAnalyzedReport(parsedEslintReportJs, octokit, pullRequest[0].number);
       const conclusion = report.success ? 'success' : 'failure';
       console.log('conclusion', conclusion);
