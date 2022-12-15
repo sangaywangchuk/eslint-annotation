@@ -137,6 +137,12 @@ export async function getPullRequestChangedAnalyzedReport(
   octokit: InstanceType<typeof GitHub>
 ): Promise<AnalyzedESLintReport> {
   console.log('getPullRequestChangedAnalyzedReport');
+  const a = {
+    owner: owner,
+    repo: repo,
+    pull_number: pullRequest.number,
+  };
+  console.log('octokit.rest.pulls.listFiles: ', a);
   const { data } = await octokit.rest.pulls.listFiles({
     owner: owner,
     repo: repo,
