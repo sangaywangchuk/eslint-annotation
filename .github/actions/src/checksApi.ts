@@ -34,7 +34,13 @@ export const createStatusCheck = async (octokit: InstanceType<typeof GitHub>): P
 export const updateCheckRun = async (
   octokit: InstanceType<typeof GitHub>,
   checkId: number,
+<<<<<<< Updated upstream
   annotations: ChecksUpdateParamsOutputAnnotations[]
+=======
+  conclusion: string,
+  annotations: ChecksUpdateParamsOutputAnnotations[],
+  status: string
+>>>>>>> Stashed changes
 ): Promise<void> => {
   /**
    * Update the GitHub check with the
@@ -54,6 +60,7 @@ export const updateCheckRun = async (
     const batchMessage = `Found ${numberOfAnnotations} ESLint errors and warnings, processing batch ${batch} of ${numBatches}...`;
     console.log(batchMessage);
     const annotationBatch = annotations.splice(0, batchSize);
+<<<<<<< Updated upstream
     try {
       await octokit.rest.checks.update({
         ...ownership,
@@ -80,6 +87,30 @@ export const updateCheckRun = async (
       core.debug(error.toString());
       core.setFailed(error.message + 'Annotation updated failed');
     }
+=======
+    status = batch>=numBatches? 'completed' : 'in_progress';
+    const finalConclusion = status==='completed'? conclusion: null;
+    const { data } = await octokit.rest.checks.update({
+      ...ownership,
+      check_run_id: checkId,
+      status,
+      conclusion: finalConclusion,
+      output: {
+        title: checkName,
+        summary: batchMessage,
+        annotations: annotationBatch,
+      },
+      /**
+       * The check run API is still in beta and the developer preview must be opted into
+       * See https://developer.github.com/changes/2018-05-07-new-checks-api-public-beta/
+       */
+      mediaType: {
+        previews: ['antiope'],
+      },
+    });
+    console.log('status');
+    console.log('status: ', data);
+>>>>>>> Stashed changes
   }
 };
 
