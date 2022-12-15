@@ -13948,7 +13948,7 @@
             })
           );
           console.log('data', data);
-          return data.id;
+          return { checkId: data.id, pullRequest: data.pull_requests };
         });
       exports.createStatusCheck = createStatusCheck;
       /**
@@ -14151,14 +14151,14 @@
         __awaiter(void 0, void 0, void 0, function* () {
           try {
             core.debug(`Starting analysis of the ESLint report json to javascript object`);
-            const { token, sha, checkName, eslintReportFile, pullRequest, ownership, repo, owner } = inputs_1.default;
+            const { token, sha, checkName, eslintReportFile, ownership, repo, owner } = inputs_1.default;
             console.log('inputs: ', inputs_1.default);
             const parsedEslintReportJs = (0, eslintReportJsonToObject_1.default)(eslintReportFile);
             console.log('parsedEslintReportJs: ', parsedEslintReportJs);
             // const analyzedReport = getAnalyzedReport(parsedEslintReportJs);
             // console.log('analyzedReport: ', analyzedReport);
             const octokit = github.getOctokit(token);
-            const checkId = yield (0, checksApi_1.createStatusCheck)(octokit);
+            const { checkId, pullRequest } = yield (0, checksApi_1.createStatusCheck)(octokit);
             console.log('checkId', checkId);
             const { data } = yield octokit.rest.checks.create(
               Object.assign(Object.assign({}, ownership), {
@@ -14169,12 +14169,12 @@
                 },
               })
             );
-            if (data.pull_requests.length) {
-              console.log('pullRequest.number', data.pull_requests[0].number);
+            if (pullRequest.length) {
+              console.log('pullRequest.number', pullRequest[0].number);
               const report = yield (0, analyzedReport_1.getPullRequestChangedAnalyzedReport)(
                 parsedEslintReportJs,
                 octokit,
-                data.pull_requests[0].number
+                pullRequest[0].number
               );
               const conclusion = report.success ? 'success' : 'failure';
               console.log('conclusion', conclusion);

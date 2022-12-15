@@ -2,7 +2,7 @@ import inputs from './inputs';
 import * as core from '@actions/core';
 const { sha, ownership, checkName, repo, owner, pullRequest } = inputs;
 import { GitHub } from '@actions/github/lib/utils';
-import { ChecksUpdateParamsOutputAnnotations } from './types';
+import { ChecksUpdateParamsOutputAnnotations, PullRequest } from './types';
 /**
  * Create a new GitHub check run
  * @param options octokit.checks.create parameters
@@ -12,7 +12,9 @@ const formatDate = (): string => {
   return new Date().toISOString();
 };
 
-export const createStatusCheck = async (octokit: InstanceType<typeof GitHub>): Promise<number> => {
+export const createStatusCheck = async (
+  octokit: InstanceType<typeof GitHub>
+): Promise<{ checkId: number; pullRequest: any }> => {
   const { data } = await octokit.rest.checks.create({
     ...ownership,
     started_at: formatDate(),
@@ -24,7 +26,7 @@ export const createStatusCheck = async (octokit: InstanceType<typeof GitHub>): P
     },
   });
   console.log('data', data);
-  return data.id;
+  return { checkId: data.id, pullRequest: data.pull_requests };
 };
 
 /**

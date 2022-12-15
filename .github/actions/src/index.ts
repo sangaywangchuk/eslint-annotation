@@ -7,14 +7,14 @@ import { createStatusCheck, updateCheckRun, closeStatusCheck } from './checksApi
 (async () => {
   try {
     core.debug(`Starting analysis of the ESLint report json to javascript object`);
-    const { token, sha, checkName, eslintReportFile, pullRequest, ownership, repo, owner } = inputs;
+    const { token, sha, checkName, eslintReportFile, ownership, repo, owner } = inputs;
     console.log('inputs: ', inputs);
     const parsedEslintReportJs = eslintJsonReportToJsObject(eslintReportFile);
     console.log('parsedEslintReportJs: ', parsedEslintReportJs);
     // const analyzedReport = getAnalyzedReport(parsedEslintReportJs);
     // console.log('analyzedReport: ', analyzedReport);
     const octokit = github.getOctokit(token);
-    const checkId = await createStatusCheck(octokit);
+    const { checkId, pullRequest } = await createStatusCheck(octokit);
     console.log('checkId', checkId);
     const { data } = await octokit.rest.checks.create({
       ...ownership,
@@ -25,13 +25,9 @@ import { createStatusCheck, updateCheckRun, closeStatusCheck } from './checksApi
       },
     });
 
-    if (data.pull_requests.length) {
-      console.log('pullRequest.number', data.pull_requests[0].number);
-      const report = await getPullRequestChangedAnalyzedReport(
-        parsedEslintReportJs,
-        octokit,
-        data.pull_requests[0].number
-      );
+    if (pullRequest.length) {
+      console.log('pullRequest.number', pullRequest[0].number);
+      const report = await getPullRequestChangedAnalyzedReport(parsedEslintReportJs, octokit, pullRequest[0].number);
       const conclusion = report.success ? 'success' : 'failure';
       console.log('conclusion', conclusion);
       await updateCheckRun(octokit, checkId, conclusion, report.annotations, 'completed');
