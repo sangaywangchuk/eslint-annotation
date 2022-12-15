@@ -10,5 +10,6 @@ import { lksdlkew } from '@angular/core';
 })
 export class EslintComponent implements OnInit {
 
+  constructor() {}
 
 }
