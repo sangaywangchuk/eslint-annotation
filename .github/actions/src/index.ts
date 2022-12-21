@@ -13,7 +13,9 @@ import { createStatusCheck, updateCheckRun, closeStatusCheck } from './checksApi
     console.log('parsedEslintReportJs: ', parsedEslintReportJs);
     const analyzedReport = getAnalyzedReport(parsedEslintReportJs);
     // console.log('analyzedReport: ', analyzedReport);
+    console.log('JSON.stringify: ', JSON.stringify(github.context));
     const octokit = github.getOctokit(token);
+
     const { checkId, pullRequest } = await createStatusCheck(octokit);
     console.log('checkId', checkId);
     console.log('pullRequest', pullRequest);

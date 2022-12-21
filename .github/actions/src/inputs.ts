@@ -6,7 +6,7 @@ const ownership = {
   owner: github.context.repo.owner,
   repo: github.context.repo.repo,
 };
-const sha = github.context.sha;
+const sha = github?.context.payload?.pull_request?.head?.sha;
 const checkName = core.getInput('check-name') || 'ESLint Annotation Report Analysis';
 const eslintReportFile = core.getInput('eslint-report-json', { required: true });
 // If this is a pull request, store the context

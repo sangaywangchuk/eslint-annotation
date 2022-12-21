@@ -13942,12 +13942,9 @@
               head_sha: sha,
               status: 'in_progress',
               name: checkName,
-              mediaType: {
-                previews: ['antiope'],
-              },
             })
           );
-          console.log('data', data);
+          console.log('createStatusCheck', data);
           return { checkId: data.id, pullRequest: data.pull_requests || [] };
         });
       exports.createStatusCheck = createStatusCheck;
@@ -14007,21 +14004,26 @@
             console.log('checkId: ', checkId);
             // https://developer.github.com/v3/checks/runs/#create-a-check-run
             // https://octokit.github.io/rest.js/v16#checks-create
-            const { data } = yield octokit.rest.checks.create(
+            const { data } = yield octokit.rest.checks.update(
               Object.assign(Object.assign({}, ownership), {
-                head_sha: sha,
-                name: checkName,
+                check_run_id: checkId,
                 status: 'completed',
                 conclusion,
-                completed_at: formatDate(),
-                check_run_id: checkId,
                 output: {
                   title: checkName,
-                  text: analyzedReport.markdown,
                   summary: analyzedReport.summary,
+                  text: analyzedReport.markdown,
+                },
+                /**
+                 * The check run API is still in beta and the developer preview must be opted into
+                 * See https://developer.github.com/changes/2018-05-07-new-checks-api-public-beta/
+                 */
+                mediaType: {
+                  previews: ['antiope'],
                 },
               })
             );
+            console.log('closeStatusCheck: ', data);
           } catch (err) {
             const error = err;
             core.debug(error.toString());
@@ -14159,6 +14161,7 @@
             console.log('parsedEslintReportJs: ', parsedEslintReportJs);
             const analyzedReport = (0, analyzedReport_1.default)(parsedEslintReportJs);
             // console.log('analyzedReport: ', analyzedReport);
+            console.log('JSON.stringify: ', JSON.stringify(github.context));
             const octokit = github.getOctokit(token);
             const { checkId, pullRequest } = yield (0, checksApi_1.createStatusCheck)(octokit);
             console.log('checkId', checkId);
@@ -14231,6 +14234,7 @@
           __setModuleDefault(result, mod);
           return result;
         };
+      var _a, _b, _c;
       Object.defineProperty(exports, '__esModule', { value: true });
       const core = __importStar(__nccwpck_require__(2186));
       const github = __importStar(__nccwpck_require__(5438));
@@ -14239,7 +14243,16 @@
         owner: github.context.repo.owner,
         repo: github.context.repo.repo,
       };
-      const sha = github.context.sha;
+      const sha =
+        (_c =
+          (_b =
+            (_a = github === null || github === void 0 ? void 0 : github.context.payload) === null || _a === void 0
+              ? void 0
+              : _a.pull_request) === null || _b === void 0
+            ? void 0
+            : _b.head) === null || _c === void 0
+          ? void 0
+          : _c.sha;
       const checkName = core.getInput('check-name') || 'ESLint Annotation Report Analysis';
       const eslintReportFile = core.getInput('eslint-report-json', { required: true });
       // If this is a pull request, store the context
