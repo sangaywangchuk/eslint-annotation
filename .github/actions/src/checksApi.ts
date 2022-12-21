@@ -21,11 +21,8 @@ export const createStatusCheck = async (
     head_sha: sha,
     status: 'in_progress',
     name: checkName,
-    mediaType: {
-      previews: ['antiope'],
-    },
   });
-  console.log('data', data);
+  console.log('createStatusCheck', data);
   return { checkId: data.id, pullRequest: data.pull_requests || [] };
 };
 
