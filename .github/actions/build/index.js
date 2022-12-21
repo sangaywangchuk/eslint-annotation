@@ -14161,6 +14161,7 @@
             console.log('parsedEslintReportJs: ', parsedEslintReportJs);
             const analyzedReport = (0, analyzedReport_1.default)(parsedEslintReportJs);
             // console.log('analyzedReport: ', analyzedReport);
+            console.log('JSON.stringify: ', JSON.stringify(github.context));
             const octokit = github.getOctokit(token);
             const { checkId, pullRequest } = yield (0, checksApi_1.createStatusCheck)(octokit);
             console.log('checkId', checkId);
