@@ -14234,6 +14234,7 @@
           __setModuleDefault(result, mod);
           return result;
         };
+      var _a, _b, _c;
       Object.defineProperty(exports, '__esModule', { value: true });
       const core = __importStar(__nccwpck_require__(2186));
       const github = __importStar(__nccwpck_require__(5438));
@@ -14242,7 +14243,16 @@
         owner: github.context.repo.owner,
         repo: github.context.repo.repo,
       };
-      const sha = github.context.sha;
+      const sha =
+        (_c =
+          (_b =
+            (_a = github === null || github === void 0 ? void 0 : github.context.payload) === null || _a === void 0
+              ? void 0
+              : _a.pull_request) === null || _b === void 0
+            ? void 0
+            : _b.head) === null || _c === void 0
+          ? void 0
+          : _c.sha;
       const checkName = core.getInput('check-name') || 'ESLint Annotation Report Analysis';
       const eslintReportFile = core.getInput('eslint-report-json', { required: true });
       // If this is a pull request, store the context
