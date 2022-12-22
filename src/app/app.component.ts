@@ -6,8 +6,4 @@ import { Component } from '@angular/core';
 })
 export class AppComponent {
   title = 'eslint-annotation';
-
-  time() {
-    title = 'sadfasdf'
-  }
 }
