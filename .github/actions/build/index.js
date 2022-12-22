@@ -13958,7 +13958,7 @@
               console.log('pull request file updated', data);
             }
           } else {
-            const message = 'Create Pull Request To see Eslint Annotation for affected files';
+            const message = 'NO ERROR its Ready for merge';
             const { data } = yield updateChecksRun(octokit, checkId, conclusion, message, annotations, status);
             console.log('pull request not updated, need to create ', data);
             // const { data } = await octokit.rest.checks.update({
@@ -14162,6 +14162,9 @@
             );
             const conclusion = report.annotations.length ? (report.success ? 'success' : 'failure') : 'success';
             yield (0, checksApi_1.onUpdateAnnotation)(octokit, checkId, conclusion, report.annotations, 'completed');
+            if (conclusion === 'failure') {
+              core.setFailed('linting failed');
+            }
           } catch (e) {
             const error = e;
             console.log('personal error: ', error.toString());

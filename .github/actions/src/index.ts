@@ -15,6 +15,9 @@ import { createStatusCheck, onUpdateAnnotation } from './checksApi';
     const report = await getPullRequestChangedAnalyzedReport(parsedEslintReportJs, octokit, pullRequest[0].number);
     const conclusion = report.annotations.length ? (report.success ? 'success' : 'failure') : 'success';
     await onUpdateAnnotation(octokit, checkId, conclusion, report.annotations, 'completed');
+    if (conclusion === 'failure') {
+      core.setFailed('linting failed');
+    }
   } catch (e) {
     const error = e as Error;
     console.log('personal error: ', error.toString());
