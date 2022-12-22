@@ -13923,7 +13923,7 @@
           return mod && mod.__esModule ? mod : { default: mod };
         };
       Object.defineProperty(exports, '__esModule', { value: true });
-      exports.closeStatusCheck = exports.updateCheckRun = exports.createStatusCheck = void 0;
+      exports.onUpdateAnnotation = exports.createStatusCheck = void 0;
       const inputs_1 = __importDefault(__nccwpck_require__(7063));
       const core = __importStar(__nccwpck_require__(2186));
       const { sha, ownership, checkName, repo, owner, pullRequest } = inputs_1.default;
@@ -13944,7 +13944,6 @@
               name: checkName,
             })
           );
-          console.log('createStatusCheck', data);
           return { checkId: data.id, pullRequest: data.pull_requests || [] };
         });
       exports.createStatusCheck = createStatusCheck;
@@ -13953,7 +13952,7 @@
        * @param annotations an array of annotation objects. See https://developer.github.com/v3/checks/runs/#annotations-object-1
        * @param checkId the ID of the check run to add annotations to
        */
-      const updateCheckRun = (octokit, checkId, conclusion, annotations, status) =>
+      const onUpdateAnnotation = (octokit, checkId, conclusion, annotations, status) =>
         __awaiter(void 0, void 0, void 0, function* () {
           /**
            * Update the GitHub check with the
@@ -13965,73 +13964,111 @@
            *
            * See https://developer.github.com/v3/checks/runs/#output-object-1
            */
-          const numberOfAnnotations = annotations.length;
-          const batchSize = 50;
-          const numBatches = Math.ceil(numberOfAnnotations / batchSize);
-          for (let batch = 1; batch <= numBatches; batch++) {
-            const batchMessage = `Found ${numberOfAnnotations} ESLint errors and warnings, processing batch ${batch} of ${numBatches}...`;
-            const annotationBatch = annotations.splice(0, batchSize);
-            status = batch >= numBatches ? 'completed' : 'in_progress';
-            const finalConclusion = status === 'completed' ? conclusion : null;
-            const { data } = yield octokit.rest.checks.update(
-              Object.assign(Object.assign({}, ownership), {
-                check_run_id: checkId,
-                status,
-                conclusion: finalConclusion,
-                output: {
-                  title: checkName,
-                  summary: batchMessage,
-                  annotations: annotationBatch,
-                },
-                /**
-                 * The check run API is still in beta and the developer preview must be opted into
-                 * See https://developer.github.com/changes/2018-05-07-new-checks-api-public-beta/
-                 */
-                mediaType: {
-                  previews: ['antiope'],
-                },
-              })
-            );
-            console.log('update status');
-            console.log('updated data: ', data);
+          if (annotations === null || annotations === void 0 ? void 0 : annotations.length) {
+            const numberOfAnnotations = annotations.length;
+            const batchSize = 50;
+            const numBatches = Math.ceil(numberOfAnnotations / batchSize);
+            for (let batch = 1; batch <= numBatches; batch++) {
+              const batchMessage = `Found ${numberOfAnnotations} ESLint errors and warnings, processing batch ${batch} of ${numBatches}...`;
+              const annotationBatch = annotations.splice(0, batchSize);
+              status = batch >= numBatches ? 'completed' : 'in_progress';
+              const finalConclusion = status === 'completed' ? conclusion : null;
+              const { data } = yield updateChecksRun(
+                octokit,
+                checkId,
+                finalConclusion,
+                batchMessage,
+                annotationBatch,
+                status
+              );
+              // const { data } = await octokit.rest.checks.update({
+              //   ...ownership,
+              //   check_run_id: checkId,
+              //   status,
+              //   conclusion: finalConclusion,
+              //   output: {
+              //     title: checkName,
+              //     summary: batchMessage,
+              //     annotations: annotationBatch,
+              //   },
+              /**
+               * The check run API is still in beta and the developer preview must be opted into
+               * See https://developer.github.com/changes/2018-05-07-new-checks-api-public-beta/
+               */
+              // });
+              console.log('pull request file updated', data);
+            }
+          } else {
+            const message = 'Create Pull Request To see Eslint Annotation for affected files';
+            const { data } = yield updateChecksRun(octokit, checkId, conclusion, message, annotations, status);
+            core.setFailed('no Annotation updated available');
+            console.log('pull request not updated, need to create ', data);
+            // const { data } = await octokit.rest.checks.update({
+            //   ...ownership,
+            //   check_run_id: checkId,
+            //   status,
+            //   conclusion,
+            //   output: {
+            //     title: checkName,
+            //     summary: 'Create Pull Request To see Eslint Annotation for affected files',
+            //   },
+            /**
+             * The check run API is still in beta and the developer preview must be opted into
+             * See https://developer.github.com/changes/2018-05-07-new-checks-api-public-beta/
+             */
+            // });
           }
         });
-      exports.updateCheckRun = updateCheckRun;
-      const closeStatusCheck = (octokit, conclusion, checkId, analyzedReport) =>
+      exports.onUpdateAnnotation = onUpdateAnnotation;
+      /**
+       * Add annotations to an existing GitHub check run
+       * @param octokit
+       * @param annotations an array of annotation objects. See https://developer.github.com/v3/checks/runs/#annotations-object-1
+       * @param checkId the ID of the check run to add annotations to
+       */
+      const updateChecksRun = (octokit, checkId, conclusion, summary, annotations, status) =>
         __awaiter(void 0, void 0, void 0, function* () {
-          try {
-            console.log('conclusion: ', conclusion);
-            console.log('checkId: ', checkId);
-            // https://developer.github.com/v3/checks/runs/#create-a-check-run
-            // https://octokit.github.io/rest.js/v16#checks-create
-            const { data } = yield octokit.rest.checks.update(
-              Object.assign(Object.assign({}, ownership), {
-                check_run_id: checkId,
-                status: 'completed',
-                conclusion,
-                output: {
-                  title: checkName,
-                  summary: analyzedReport.summary,
-                  text: analyzedReport.markdown,
-                },
-                /**
-                 * The check run API is still in beta and the developer preview must be opted into
-                 * See https://developer.github.com/changes/2018-05-07-new-checks-api-public-beta/
-                 */
-                mediaType: {
-                  previews: ['antiope'],
-                },
-              })
-            );
-            console.log('closeStatusCheck: ', data);
-          } catch (err) {
-            const error = err;
-            core.debug(error.toString());
-            console.log('hello');
-            core.setFailed(error.message + 'Annotation updated failed');
-          }
+          return yield octokit.rest.checks.update(
+            Object.assign(Object.assign({}, ownership), {
+              check_run_id: checkId,
+              status,
+              conclusion,
+              output: {
+                title: checkName,
+                summary,
+                annotations,
+              },
+            })
+          );
         });
-      exports.closeStatusCheck = closeStatusCheck;
+      // export const closeStatusCheck = async (
+      //   octokit: InstanceType<typeof GitHub>,
+      //   conclusion: string,
+      //   checkId: number,
+      //   analyzedReport: AnalyzedESLintReport
+      // ): Promise<void> => {
+      //   try {
+      //     console.log('conclusion: ', conclusion);
+      //     console.log('checkId: ', checkId);
+      //     const { data } = await octokit.rest.checks.update({
+      //       ...ownership,
+      //       check_run_id: checkId,
+      //       status: 'completed',
+      //       conclusion,
+      //       output: {
+      //         title: checkName,
+      //         summary: analyzedReport.summary,
+      //         text: analyzedReport.markdown,
+      //       },
+      //     });
+      //     console.log('closeStatusCheck: ', data);
+      //   } catch (err) {
+      //     const error = err as Error;
+      //     core.debug(error.toString());
+      //     console.log('hello');
+      //     core.setFailed(error.message + 'Annotation updated failed');
+      //   }
+      // };
 
       /***/
     },
@@ -14149,38 +14186,24 @@
       const github = __importStar(__nccwpck_require__(5438));
       const eslintReportJsonToObject_1 = __importDefault(__nccwpck_require__(1253));
       const inputs_1 = __importDefault(__nccwpck_require__(7063));
-      const analyzedReport_1 = __importStar(__nccwpck_require__(185));
+      const analyzedReport_1 = __nccwpck_require__(185);
       const checksApi_1 = __nccwpck_require__(4999);
       (() =>
         __awaiter(void 0, void 0, void 0, function* () {
           try {
             core.debug(`Starting analysis of the ESLint report json to javascript object`);
-            const { token, sha, checkName, eslintReportFile, ownership, repo, owner } = inputs_1.default;
-            console.log('inputs: ', inputs_1.default);
+            const { token, eslintReportFile } = inputs_1.default;
             const parsedEslintReportJs = (0, eslintReportJsonToObject_1.default)(eslintReportFile);
-            console.log('parsedEslintReportJs: ', parsedEslintReportJs);
-            const analyzedReport = (0, analyzedReport_1.default)(parsedEslintReportJs);
-            // console.log('analyzedReport: ', analyzedReport);
-            console.log('JSON.stringify: ', JSON.stringify(github.context));
             const octokit = github.getOctokit(token);
             const { checkId, pullRequest } = yield (0, checksApi_1.createStatusCheck)(octokit);
-            console.log('checkId', checkId);
-            console.log('pullRequest', pullRequest);
-            if (pullRequest.length) {
-              const report = yield (0, analyzedReport_1.getPullRequestChangedAnalyzedReport)(
-                parsedEslintReportJs,
-                octokit,
-                pullRequest[0].number
-              );
-              const conclusion = report.success ? 'success' : 'failure';
-              console.log('conclusion', conclusion);
-              if (report.annotations.length) {
-                yield (0, checksApi_1.updateCheckRun)(octokit, checkId, conclusion, report.annotations, 'completed');
-              }
-            } else {
-              console.log('close print exit');
-              yield (0, checksApi_1.closeStatusCheck)(octokit, 'success', checkId, analyzedReport);
-            }
+            console.log('checkID', checkId, pullRequest);
+            const report = yield (0, analyzedReport_1.getPullRequestChangedAnalyzedReport)(
+              parsedEslintReportJs,
+              octokit,
+              pullRequest[0].number
+            );
+            const conclusion = report.annotations.length ? (report.success ? 'success' : 'failure') : 'success';
+            yield (0, checksApi_1.onUpdateAnnotation)(octokit, checkId, conclusion, report.annotations, 'completed');
           } catch (e) {
             const error = e;
             console.log('personal error: ', error.toString());
@@ -14243,6 +14266,8 @@
         owner: github.context.repo.owner,
         repo: github.context.repo.repo,
       };
+      const prEvents = ['pull_request', 'pull_request_review', 'pull_request_review_comment', 'pull_request_target'];
+      const pushEvents = ['push'];
       const sha =
         (_c =
           (_b =
@@ -14259,9 +14284,26 @@
       // Otherwise, set to false
       const isPullRequest = Object.prototype.hasOwnProperty.call(github.context.payload, 'pull_request');
       const pullRequest = isPullRequest ? github.context.payload.pull_request : false;
+      const getSha = () => {
+        let sha = github.context.sha;
+        /**
+         * For Pull request events the last commit is on github.context.payload.pull_request.head.sha
+         */
+        if (prEvents.includes(github.context.eventName)) {
+          const pull = github.context.payload.pull_request;
+          sha = pull === null || pull === void 0 ? void 0 : pull.head.sha;
+        }
+        /**
+         * For push events the last commit is on github.context.sha
+         */
+        if (pushEvents.includes(github.context.eventName)) {
+          sha = github.context.sha;
+        }
+        return sha;
+      };
       exports['default'] = {
         token: githubToken,
-        sha: sha,
+        sha: getSha(),
         ownership,
         isPullRequest,
         pullRequest,
