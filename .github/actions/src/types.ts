@@ -58,17 +58,3 @@ export interface AnalyzedESLintReport {
   summary: string;
   annotations: ChecksUpdateParamsOutputAnnotations[];
 }
-export interface RollupReport {
-  errorCount: number;
-  warningCount: number;
-  success: boolean;
-  markdown: string;
-  summary: string;
-  annotations: ChecksUpdateParamsOutputAnnotations[];
-  reports: AnalyzedESLintReport[];
-}
-
-export interface FileSet {
-  name: string;
-  files: ESLintEntry[];
-}

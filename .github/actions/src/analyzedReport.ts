@@ -1,7 +1,7 @@
 import type { ESLintReport, ChecksUpdateParamsOutputAnnotations, AnalyzedESLintReport } from './types';
-import inputs from './inputs';
+import utils from './utils';
 import { GitHub } from '@actions/github/lib/utils';
-const { sha, githubContext, owner, repo, checkName, eslintReportFile, githubWorkSpace, pullRequest } = inputs;
+const { sha, owner, repo, githubWorkSpace } = utils;
 
 /**
  * Analyzes an ESLint report JS object and returns a report
@@ -9,28 +9,35 @@ const { sha, githubContext, owner, repo, checkName, eslintReportFile, githubWork
  */
 export default function getAnalyzedReport(files: ESLintReport): AnalyzedESLintReport {
   console.log('getAnalyzedReport');
-  // Create markdown placeholder
+  /**
+   * Create markdown placeholder
+   */
   let markdownText = '';
-
-  // Start the error and warning counts at 0
+  /**
+   * Start the error and warning counts at 0
+   */
   let errorCount = 0;
   let warningCount = 0;
-
-  // Create text string placeholders
+  /**
+   * Create text string placeholders
+   */
   let errorText = '';
   let warningText = '';
-
-  // Create an array for annotations
+  /**
+   * Create an array for annotations
+   */
   const annotations: ChecksUpdateParamsOutputAnnotations[] = [];
-
-  // Loop through each file
+  /**
+   * Loop through each file
+   */
   for (const file of files) {
-    // Get the file path and any warning/error messages
+    /**
+     * Get the file path and any warning/error messages
+     */
     const { filePath, messages } = file;
-
-    console.log(`Analyzing ${filePath}`);
-
-    // Skip files with no error or warning messages
+    /**
+     * Skip files with no error or warning messages
+     */
     if (!messages.length) {
       continue;
     }
@@ -42,22 +49,28 @@ export default function getAnalyzedReport(files: ESLintReport): AnalyzedESLintRe
      */
     errorCount += file.errorCount;
     warningCount += file.warningCount;
-
-    // Loop through all the error/warning messages for the file
+    /**
+     * Loop through all the error/warning messages for the file
+     */
     for (const lintMessage of messages) {
-      // Pull out information about the error/warning message
+      /**
+       * Pull out information about the error/warning message
+       */
       const { line, column, severity, ruleId, message } = lintMessage;
-
-      // If there's no rule ID (e.g. an ignored file warning), skip
+      /**
+       * If there's no rule ID (e.g. an ignored file warning), skip
+       */
       if (!ruleId) continue;
 
       const endLine = lintMessage.endLine ? lintMessage.endLine : line;
       const endColumn = lintMessage.endColumn ? lintMessage.endColumn : column;
-
-      // Check if it a warning or error
+      /**
+       * Check if it a warning or error
+       */
       const isWarning = severity < 2;
-
-      // Trim the absolute path prefix from the file path
+      /**
+       * Trim the absolute path prefix from the file path
+       */
       const filePathTrimmed: string = filePath.replace(`${githubWorkSpace}/`, '');
       console.log(`Analyzing filePathTrimmed:  ${filePathTrimmed}`);
       /**
@@ -83,7 +96,9 @@ export default function getAnalyzedReport(files: ESLintReport): AnalyzedESLintRe
         }
       }
 
-      // Add the annotation object to the array
+      /**
+       * Add the annotation object to the array
+       */
       annotations.push(annotation);
 
       /**
@@ -98,7 +113,9 @@ export default function getAnalyzedReport(files: ESLintReport): AnalyzedESLintRe
       messageText += '- Message: ' + message + '\n';
       messageText += '  - From: [`' + ruleId + '`]\n';
 
-      // Add the markdown text to the appropriate placeholder
+      /**
+       * Add the markdown text to the appropriate placeholder
+       */
       if (isWarning) {
         warningText += messageText;
       } else {
@@ -106,14 +123,17 @@ export default function getAnalyzedReport(files: ESLintReport): AnalyzedESLintRe
       }
     }
   }
-
-  // If there is any markdown error text, add it to the markdown output
+  /**
+   * If there is any markdown error text, add it to the markdown output
+   */
   if (errorText.length) {
     markdownText += '## ' + errorCount.toString() + ' Error(s):\n';
     markdownText += errorText + '\n';
   }
 
-  // If there is any markdown warning text, add it to the markdown output
+  /**
+   * If there is any markdown warning text, add it to the markdown output
+   */
   if (warningText.length) {
     markdownText += '## ' + warningCount.toString() + ' Warning(s):\n';
     markdownText += warningText + '\n';
@@ -121,7 +141,9 @@ export default function getAnalyzedReport(files: ESLintReport): AnalyzedESLintRe
 
   let success = errorCount === 0;
 
-  // Return the ESLint report analysis
+  /**
+   * Return the ESLint report analysis
+   */
   return {
     errorCount,
     warningCount,
@@ -132,32 +154,31 @@ export default function getAnalyzedReport(files: ESLintReport): AnalyzedESLintRe
   };
 }
 
+/**
+ *
+ * @param reportJS
+ * @param octokit
+ * @param number
+ * @returns
+ */
 export async function getPullRequestChangedAnalyzedReport(
   reportJS: ESLintReport,
   octokit: InstanceType<typeof GitHub>,
   number: number
 ): Promise<AnalyzedESLintReport> {
-  console.log('getPullRequestChangedAnalyzedReport');
-  const a = {
-    owner: owner,
-    repo: repo,
-    pull_number: number,
-  };
-  console.log('octokit.rest.pulls.listFiles: ', a);
   const { data } = await octokit.rest.pulls.listFiles({
     owner: owner,
     repo: repo,
     pull_number: number,
   });
-  console.log('githubWorkSpace: ', githubWorkSpace);
   const changedFiles = data.map((prFiles) => prFiles.filename);
-  console.log('changedFiles :', changedFiles);
 
   const pullRequestFilesReportJS: ESLintReport = reportJS.filter((file) => {
     file.filePath = file.filePath.replace(githubWorkSpace + '/', '');
     console.log(changedFiles.indexOf(file.filePath), file.filePath);
     return changedFiles.indexOf(file.filePath) !== -1;
   });
+
   const nonPullRequestFilesReportJS: ESLintReport = reportJS.filter((file) => {
     file.filePath = file.filePath.replace(githubWorkSpace + '/', '');
     return changedFiles.indexOf(file.filePath) === -1;

@@ -1,17 +1,21 @@
 import inputs from './inputs';
-import * as core from '@actions/core';
-const { sha, ownership, checkName, repo, owner, pullRequest } = inputs;
+import utils from './utils';
+const { checkName } = inputs;
+const { sha, ownership } = utils;
 import { GitHub } from '@actions/github/lib/utils';
-import { AnalyzedESLintReport, ChecksUpdateParamsOutputAnnotations, PullRequest } from './types';
+import { ChecksUpdateParamsOutputAnnotations } from './types';
 /**
- * Create a new GitHub check run
- * @param options octokit.checks.create parameters
+ *
+ * @returns current date
  */
-
 const formatDate = (): string => {
   return new Date().toISOString();
 };
 
+/**
+ * Create a new GitHub check run
+ * @param octokit octokit.checks.create parameters
+ */
 export const createStatusCheck = async (
   octokit: InstanceType<typeof GitHub>
 ): Promise<{ checkId: number; pullRequest: any }> => {
@@ -27,8 +31,11 @@ export const createStatusCheck = async (
 
 /**
  * Add annotations to an existing GitHub check run
- * @param annotations an array of annotation objects. See https://developer.github.com/v3/checks/runs/#annotations-object-1
+ * @param octokit octokit.checks.update parameters
  * @param checkId the ID of the check run to add annotations to
+ * @param conclusion
+ * @param annotations an array of annotation objects. See https://developer.github.com/v3/checks/runs/#annotations-object-1
+ * @param status
  */
 export const onUpdateAnnotation = async (
   octokit: InstanceType<typeof GitHub>,
@@ -56,50 +63,25 @@ export const onUpdateAnnotation = async (
       const annotationBatch = annotations.splice(0, batchSize);
       status = batch >= numBatches ? 'completed' : 'in_progress';
       const finalConclusion = status === 'completed' ? conclusion : null;
-      const { data } = await updateChecksRun(octokit, checkId, finalConclusion, batchMessage, annotationBatch, status);
-      // const { data } = await octokit.rest.checks.update({
-      //   ...ownership,
-      //   check_run_id: checkId,
-      //   status,
-      //   conclusion: finalConclusion,
-      //   output: {
-      //     title: checkName,
-      //     summary: batchMessage,
-      //     annotations: annotationBatch,
-      //   },
-      /**
-       * The check run API is still in beta and the developer preview must be opted into
-       * See https://developer.github.com/changes/2018-05-07-new-checks-api-public-beta/
-       */
-      // });
-      console.log('pull request file updated', data);
+      await updateChecksRun(octokit, checkId, finalConclusion, batchMessage, annotationBatch, status);
     }
   } else {
     const message = 'NO ERROR its Ready for merge';
-    const { data } = await updateChecksRun(octokit, checkId, conclusion, message, annotations, status);
-    console.log('pull request not updated, need to create ', data);
-
-    // const { data } = await octokit.rest.checks.update({
-    //   ...ownership,
-    //   check_run_id: checkId,
-    //   status,
-    //   conclusion,
-    //   output: {
-    //     title: checkName,
-    //     summary: 'Create Pull Request To see Eslint Annotation for affected files',
-    //   },
-    /**
-     * The check run API is still in beta and the developer preview must be opted into
-     * See https://developer.github.com/changes/2018-05-07-new-checks-api-public-beta/
-     */
-    // });
+    await updateChecksRun(octokit, checkId, conclusion, message, annotations, status);
   }
 };
+
 /**
  * Add annotations to an existing GitHub check run
  * @param octokit
- * @param annotations an array of annotation objects. See https://developer.github.com/v3/checks/runs/#annotations-object-1
  * @param checkId the ID of the check run to add annotations to
+ * @param conclusion
+ * @param summary
+ * @param annotations an array of annotation objects. See https://developer.github.com/v3/checks/runs/#annotations-object-1
+ * @param status
+ * @returns
+ * The check run API is still in beta and the developer preview must be opted into
+ * See https://developer.github.com/changes/2018-05-07-new-checks-api-public-beta/
  */
 const updateChecksRun = async (
   octokit: InstanceType<typeof GitHub>,
@@ -119,38 +101,5 @@ const updateChecksRun = async (
       summary,
       annotations,
     },
-    /**
-     * The check run API is still in beta and the developer preview must be opted into
-     * See https://developer.github.com/changes/2018-05-07-new-checks-api-public-beta/
-     */
   });
 };
-
-// export const closeStatusCheck = async (
-//   octokit: InstanceType<typeof GitHub>,
-//   conclusion: string,
-//   checkId: number,
-//   analyzedReport: AnalyzedESLintReport
-// ): Promise<void> => {
-//   try {
-//     console.log('conclusion: ', conclusion);
-//     console.log('checkId: ', checkId);
-//     const { data } = await octokit.rest.checks.update({
-//       ...ownership,
-//       check_run_id: checkId,
-//       status: 'completed',
-//       conclusion,
-//       output: {
-//         title: checkName,
-//         summary: analyzedReport.summary,
-//         text: analyzedReport.markdown,
-//       },
-//     });
-//     console.log('closeStatusCheck: ', data);
-//   } catch (err) {
-//     const error = err as Error;
-//     core.debug(error.toString());
-//     console.log('hello');
-//     core.setFailed(error.message + 'Annotation updated failed');
-//   }
-// };
