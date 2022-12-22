@@ -77,7 +77,6 @@ export const onUpdateAnnotation = async (
   } else {
     const message = 'Create Pull Request To see Eslint Annotation for affected files';
     const { data } = await updateChecksRun(octokit, checkId, conclusion, message, annotations, status);
-    core.setFailed('no Annotation updated available');
     console.log('pull request not updated, need to create ', data);
 
     // const { data } = await octokit.rest.checks.update({
