@@ -5,4 +5,8 @@ import { Component, OnInit } from '@angular/core';
   templateUrl: './eslint.component.html',
   styleUrls: ['./eslint.component.scss']
 })
-export class EslintComponent {}
+export class EslintComponent {
+  constructor(){
+
+  }
+}
