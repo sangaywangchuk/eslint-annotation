@@ -3,12 +3,12 @@ import * as github from '@actions/github';
 import eslintJsonReportToJsObject from './eslintReportJsonToObject';
 import inputs from './inputs';
 import { getPullRequestChangedAnalyzedReport } from './analyzedReport';
-import { createStatusCheck, onUpdateAnnotation } from './checksApi';
+import { createStatusCheck, onRateLimitingError } from './checksApi';
 (async () => {
   try {
     const { token, eslintReportFile } = inputs;
     /**
-     * convert eslint report json file to javascript object
+     * Eslint report to javascript object conversion
      */
     const parsedEslintReportJs = eslintJsonReportToJsObject(eslintReportFile);
     /**
@@ -22,7 +22,7 @@ import { createStatusCheck, onUpdateAnnotation } from './checksApi';
 
     const conclusion = report.annotations.length ? (report.success ? 'success' : 'failure') : 'success';
 
-    await onUpdateAnnotation(octokit, checkId, conclusion, report.annotations, 'completed');
+    await onRateLimitingError(octokit, checkId, conclusion, report.annotations, 'completed');
 
     if (conclusion === 'failure') {
       core.setFailed('linting failed fix the issues');

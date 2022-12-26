@@ -30,14 +30,14 @@ export const createStatusCheck = async (
 };
 
 /**
- * Add annotations to an existing GitHub check run
+ * To an existing GitHub check run, add annotations.
  * @param octokit octokit.checks.update parameters
- * @param checkId the ID of the check run to add annotations to
+ * @param checkId The check run's ID that you want to annotate
  * @param conclusion
  * @param annotations an array of annotation objects. See https://developer.github.com/v3/checks/runs/#annotations-object-1
  * @param status
  */
-export const onUpdateAnnotation = async (
+export const onRateLimitingError = async (
   octokit: InstanceType<typeof GitHub>,
   checkId: number,
   conclusion: string,
@@ -45,13 +45,7 @@ export const onUpdateAnnotation = async (
   status: string
 ): Promise<void> => {
   /**
-   * Update the GitHub check with the
-   * annotations from the report analysis.
-   *
-   * If there are more than 50 annotations
-   * we need to make multiple API requests
-   * to avoid rate limiting errors
-   *
+   * We need to send numerous API queries if there are more than 50 annotations in order to prevent rate limiting errors.
    * See https://developer.github.com/v3/checks/runs/#output-object-1
    */
   if (annotations?.length) {
@@ -72,12 +66,12 @@ export const onUpdateAnnotation = async (
 };
 
 /**
- * Add annotations to an existing GitHub check run
+ * Update the GitHub check with the annotations from the report analysis.
  * @param octokit
- * @param checkId the ID of the check run to add annotations to
+ * @param checkId The ID of the check run to add annotations to
  * @param conclusion
  * @param summary
- * @param annotations an array of annotation objects. See https://developer.github.com/v3/checks/runs/#annotations-object-1
+ * @param annotations An array of annotation objects. See https://developer.github.com/v3/checks/runs/#annotations-object-1
  * @param status
  * @returns
  * The check run API is still in beta and the developer preview must be opted into
