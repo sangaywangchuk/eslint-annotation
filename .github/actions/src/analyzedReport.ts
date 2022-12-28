@@ -12,7 +12,8 @@ export default function getAnalyzedReport(files: ESLintReport): AnalyzedESLintRe
   /**
    * Create markdown placeholder
    */
-  let markdownText = '';
+  let markdownText = `| File Path | Start Line | End Line | Rule Id | Message | 
+                      |---|---|---|---|`;
   /**
    * Start the error and warning counts at 0
    */
@@ -38,6 +39,8 @@ export default function getAnalyzedReport(files: ESLintReport): AnalyzedESLintRe
     /**
      * Skip files with no error or warning messages
      */
+    console.log('messages: ', messages.length);
+
     if (!messages.length) {
       continue;
     }
@@ -60,6 +63,7 @@ export default function getAnalyzedReport(files: ESLintReport): AnalyzedESLintRe
       /**
        * If there's no rule ID (e.g. an ignored file warning), skip
        */
+      console.log('ruleId: ', ruleId);
       if (!ruleId) continue;
 
       const endLine = lintMessage.endLine ? lintMessage.endLine : line;
@@ -106,11 +110,7 @@ export default function getAnalyzedReport(files: ESLintReport): AnalyzedESLintRe
        */
       const link = `https://github.com/${owner}/${repo}/blob/${sha}/${filePathTrimmed}#L${line}:L${endLine}`;
 
-      let messageText = `### [\`${filePathTrimmed}\` line \`${line.toString()}\`](${link})\n`;
-      messageText += '- Start Line: `' + line.toString() + '`\n';
-      messageText += '- End Line: `' + endLine.toString() + '`\n';
-      messageText += '- Message: ' + message + '\n';
-      messageText += '  - From: [`' + ruleId + '`]\n';
+      let messageText = `| ${filePathTrimmed} | ${line.toString()} | ${endLine.toString()} | ${ruleId} | ${message} |\n`;
 
       /**
        * Add the markdown text to the appropriate placeholder
