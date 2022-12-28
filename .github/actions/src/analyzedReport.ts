@@ -30,8 +30,7 @@ export default function getAnalyzedReport(files: ESLintReport): AnalyzedESLintRe
   /**
    * Loop through each file
    */
-  let messageText = `\n| File Path | Start Line | End Line | Rule Id | Message |\n`;
-  messageText += `|---|---|---|---|---|\n`;
+  let messageText = ``;
   for (const file of files) {
     /**
      * Get the file path and any warning/error messages
@@ -61,6 +60,7 @@ export default function getAnalyzedReport(files: ESLintReport): AnalyzedESLintRe
       /**
        * Pull out information about the error/warning message
        */
+
       const { line, column, severity, ruleId, message } = lintMessage;
       /**
        * If there's no rule ID (e.g. an ignored file warning), skip
@@ -137,7 +137,8 @@ export default function getAnalyzedReport(files: ESLintReport): AnalyzedESLintRe
    */
   if (warningText.length) {
     markdownText += '## ' + warningCount.toString() + ' Warning(s):\n';
-    markdownText += warningText + '\n';
+    markdownText += `\n| File Path | Start Line | End Line | Rule Id | Message |\n`;
+    messageText += `|---|---|---|---|---|\n` + warningText + '\n';
   }
 
   let success = errorCount === 0;
