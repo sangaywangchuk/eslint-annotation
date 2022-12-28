@@ -12,8 +12,8 @@ export default function getAnalyzedReport(files: ESLintReport): AnalyzedESLintRe
   /**
    * Create markdown placeholder
    */
-  let markdownText = `| File Path | Start Line | End Line | Rule Id | Message | 
-                      |---|---|---|---|`;
+  let markdownText = `| File Path | Start Line | End Line | Rule Id | Message | \n
+                      |---|---|---|---|---|`;
   /**
    * Start the error and warning counts at 0
    */
