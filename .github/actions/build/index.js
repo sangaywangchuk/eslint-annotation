@@ -13712,8 +13712,6 @@
         /**
          * Loop through each file
          */
-        errorText += `| File Path | Start Line | End Line | Rule Id | Message | \n
-                |---|---|---|---|---| \n`;
         for (const file of files) {
           /**
            * Get the file path and any warning/error messages
@@ -13736,6 +13734,8 @@
           /**
            * Loop through all the error/warning messages for the file
            */
+          let messageText = `| File Path | Start Line | End Line | Rule Id | Message |\n
+                      |---|---|---|---|\n`;
           for (const lintMessage of messages) {
             /**
              * Pull out information about the error/warning message
@@ -13786,7 +13786,7 @@
              * text for the error/warning
              */
             const link = `https://github.com/${owner}/${repo}/blob/${sha}/${filePathTrimmed}#L${line}:L${endLine}`;
-            let messageText = `| ${filePathTrimmed} | ${line.toString()} | ${endLine.toString()} | ${ruleId} | ${message} |\n`;
+            messageText += `| ${filePathTrimmed} | ${line.toString()} | ${endLine.toString()} | ${ruleId} | ${message} |\n`;
             /**
              * Add the markdown text to the appropriate placeholder
              */
