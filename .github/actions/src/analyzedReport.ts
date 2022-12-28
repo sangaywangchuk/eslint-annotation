@@ -12,8 +12,7 @@ export default function getAnalyzedReport(files: ESLintReport): AnalyzedESLintRe
   /**
    * Create markdown placeholder
    */
-  let markdownText = `| File Path | Start Line | End Line | Rule Id | Message | \n
-                      |---|---|---|---|---| \n`;
+  let markdownText = ``;
   /**
    * Start the error and warning counts at 0
    */
@@ -31,6 +30,9 @@ export default function getAnalyzedReport(files: ESLintReport): AnalyzedESLintRe
   /**
    * Loop through each file
    */
+
+  errorText += `| File Path | Start Line | End Line | Rule Id | Message | \n
+                |---|---|---|---|---| \n`;
   for (const file of files) {
     /**
      * Get the file path and any warning/error messages
