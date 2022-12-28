@@ -13712,6 +13712,8 @@
         /**
          * Loop through each file
          */
+        let messageText = `\n| File Path | Start Line | End Line | Rule Id | Message |\n`;
+        messageText += `|---|---|---|---|---|\n`;
         for (const file of files) {
           /**
            * Get the file path and any warning/error messages
@@ -13734,8 +13736,6 @@
           /**
            * Loop through all the error/warning messages for the file
            */
-          let messageText = `\n| File Path | Start Line | End Line | Rule Id | Message |\n`;
-          messageText += `|---|---|---|---|---|\n`;
           for (const lintMessage of messages) {
             /**
              * Pull out information about the error/warning message
