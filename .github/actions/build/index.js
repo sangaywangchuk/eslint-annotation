@@ -13801,15 +13801,15 @@
          */
         if (errorText.length) {
           // markdownText += '## ' + errorCount.toString() + ' Error(s):\n';
-          markdownText += errorText + '\n';
+          markdownText +=
+            `\n| File Path | Start Line | End Line | Rule Id | Message |\n|---|---|---|---|---|\n` + errorText + '\n';
         }
         /**
          * If there is any markdown warning text, add it to the markdown output
          */
         if (warningText.length) {
           markdownText += '## ' + warningCount.toString() + ' Warning(s):\n';
-          markdownText += `\n| File Path | Start Line | End Line | Rule Id | Message |\n`;
-          messageText += `|---|---|---|---|---|\n` + warningText + '\n';
+          markdownText += warningText + '\n';
         }
         let success = errorCount === 0;
         /**

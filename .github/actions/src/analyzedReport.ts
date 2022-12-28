@@ -129,7 +129,8 @@ export default function getAnalyzedReport(files: ESLintReport): AnalyzedESLintRe
    */
   if (errorText.length) {
     // markdownText += '## ' + errorCount.toString() + ' Error(s):\n';
-    markdownText += errorText + '\n';
+    markdownText +=
+      `\n| File Path | Start Line | End Line | Rule Id | Message |\n|---|---|---|---|---|\n` + errorText + '\n';
   }
 
   /**
@@ -137,8 +138,7 @@ export default function getAnalyzedReport(files: ESLintReport): AnalyzedESLintRe
    */
   if (warningText.length) {
     markdownText += '## ' + warningCount.toString() + ' Warning(s):\n';
-    markdownText += `\n| File Path | Start Line | End Line | Rule Id | Message |\n`;
-    messageText += `|---|---|---|---|---|\n` + warningText + '\n';
+    markdownText += warningText + '\n';
   }
 
   let success = errorCount === 0;
