@@ -42,7 +42,8 @@ export const onRateLimitingError = async (
   checkId: number,
   conclusion: string,
   annotations: ChecksUpdateParamsOutputAnnotations[],
-  status: string
+  status: string,
+  text: string
 ): Promise<void> => {
   /**
    * We need to send numerous API queries if there are more than 50 annotations in order to prevent rate limiting errors.
@@ -57,7 +58,7 @@ export const onRateLimitingError = async (
       const annotationBatch = annotations.splice(0, batchSize);
       status = batch >= numBatches ? 'completed' : 'in_progress';
       const finalConclusion = status === 'completed' ? conclusion : null;
-      await updateChecksRun(octokit, checkId, finalConclusion, batchMessage, annotationBatch, status);
+      await updateChecksRun(octokit, checkId, finalConclusion, batchMessage, annotationBatch, status, text);
     }
   } else {
     const message = 'NO ERROR its Ready for merge';
@@ -83,7 +84,8 @@ const updateChecksRun = async (
   conclusion: string | null,
   summary: string,
   annotations: ChecksUpdateParamsOutputAnnotations[],
-  status: string
+  status: string,
+  text?: string
 ) => {
   return await octokit.rest.checks.update({
     ...ownership,
@@ -93,6 +95,7 @@ const updateChecksRun = async (
     output: {
       title: checkName,
       summary,
+      text,
       annotations,
     },
   });

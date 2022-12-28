@@ -22,7 +22,7 @@ import { createStatusCheck, onRateLimitingError } from './checksApi';
 
     const conclusion = report.annotations.length ? (report.success ? 'success' : 'failure') : 'success';
 
-    await onRateLimitingError(octokit, checkId, conclusion, report.annotations, 'completed');
+    await onRateLimitingError(octokit, checkId, conclusion, report.annotations, 'completed', report?.markdown);
 
     if (conclusion === 'failure') {
       core.setFailed('linting failed fix the issues');

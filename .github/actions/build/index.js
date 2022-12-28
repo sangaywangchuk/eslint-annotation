@@ -13948,7 +13948,7 @@
        * @param annotations an array of annotation objects. See https://developer.github.com/v3/checks/runs/#annotations-object-1
        * @param status
        */
-      const onRateLimitingError = (octokit, checkId, conclusion, annotations, status) =>
+      const onRateLimitingError = (octokit, checkId, conclusion, annotations, status, text) =>
         __awaiter(void 0, void 0, void 0, function* () {
           /**
            * We need to send numerous API queries if there are more than 50 annotations in order to prevent rate limiting errors.
@@ -13963,7 +13963,7 @@
               const annotationBatch = annotations.splice(0, batchSize);
               status = batch >= numBatches ? 'completed' : 'in_progress';
               const finalConclusion = status === 'completed' ? conclusion : null;
-              yield updateChecksRun(octokit, checkId, finalConclusion, batchMessage, annotationBatch, status);
+              yield updateChecksRun(octokit, checkId, finalConclusion, batchMessage, annotationBatch, status, text);
             }
           } else {
             const message = 'NO ERROR its Ready for merge';
@@ -13983,7 +13983,7 @@
        * The check run API is still in beta and the developer preview must be opted into
        * See https://developer.github.com/changes/2018-05-07-new-checks-api-public-beta/
        */
-      const updateChecksRun = (octokit, checkId, conclusion, summary, annotations, status) =>
+      const updateChecksRun = (octokit, checkId, conclusion, summary, annotations, status, text) =>
         __awaiter(void 0, void 0, void 0, function* () {
           return yield octokit.rest.checks.update(
             Object.assign(Object.assign({}, ownership), {
@@ -13993,6 +13993,7 @@
               output: {
                 title: checkName,
                 summary,
+                text,
                 annotations,
               },
             })
@@ -14137,7 +14138,8 @@
               (_a = pullRequest[0]) === null || _a === void 0 ? void 0 : _a.number
             );
             const conclusion = report.annotations.length ? (report.success ? 'success' : 'failure') : 'success';
-            yield (0, checksApi_1.onRateLimitingError)(octokit, checkId, conclusion, report.annotations, 'completed');
+            yield (0,
+            checksApi_1.onRateLimitingError)(octokit, checkId, conclusion, report.annotations, 'completed', report === null || report === void 0 ? void 0 : report.markdown);
             if (conclusion === 'failure') {
               core.setFailed('linting failed fix the issues');
             }
