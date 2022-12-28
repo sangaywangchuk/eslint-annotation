@@ -13734,8 +13734,8 @@
           /**
            * Loop through all the error/warning messages for the file
            */
-          let messageText = `| File Path | Start Line | End Line | Rule Id | Message |\n
-                      |---|---|---|---|\n`;
+          let messageText = `| File Path | Start Line | End Line | Rule Id | Message |\n`;
+          messageText += `|---|---|---|---|---|\n`;
           for (const lintMessage of messages) {
             /**
              * Pull out information about the error/warning message
