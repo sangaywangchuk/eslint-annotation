@@ -126,7 +126,7 @@ export default function getAnalyzedReport(files: ESLintReport): AnalyzedESLintRe
    * If there is any markdown error text, add it to the markdown output
    */
   if (errorText.length) {
-    markdownText += '## ' + errorCount.toString() + ' Error(s):\n';
+    // markdownText += '## ' + errorCount.toString() + ' Error(s):\n';
     markdownText += errorText + '\n';
   }
 
