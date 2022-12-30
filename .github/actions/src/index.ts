@@ -14,13 +14,9 @@ import { createStatusCheck, onCheckRateLimitingError } from './checksApi';
 
     const report = await getPullRequestChangedAnalyzedReport(parsedEslintReportJs);
 
-    const conclusion = report?.annotations?.length ? (report?.success ? 'success' : 'failure') : 'success';
+    const conclusion = report?.success ? 'success' : 'failure';
 
     await onCheckRateLimitingError(checkId, conclusion, report, 'completed');
-
-    if (conclusion === 'failure') {
-      core.setFailed('Fix this pipeline by resolving the pull request error');
-    }
   } catch (e) {
     const error = e as Error;
     console.log('personal error: ', error.toString());

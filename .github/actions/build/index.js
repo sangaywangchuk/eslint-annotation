@@ -14244,7 +14244,6 @@
       const checksApi_1 = __nccwpck_require__(4999);
       (() =>
         __awaiter(void 0, void 0, void 0, function* () {
-          var _a;
           try {
             /**
              * Eslint report to javascript object conversion
@@ -14254,19 +14253,8 @@
             );
             const { checkId } = yield (0, checksApi_1.createStatusCheck)();
             const report = yield (0, analyzedReport_1.getPullRequestChangedAnalyzedReport)(parsedEslintReportJs);
-            const conclusion = (
-              (_a = report === null || report === void 0 ? void 0 : report.annotations) === null || _a === void 0
-                ? void 0
-                : _a.length
-            )
-              ? (report === null || report === void 0 ? void 0 : report.success)
-                ? 'success'
-                : 'failure'
-              : 'success';
+            const conclusion = (report === null || report === void 0 ? void 0 : report.success) ? 'success' : 'failure';
             yield (0, checksApi_1.onCheckRateLimitingError)(checkId, conclusion, report, 'completed');
-            if (conclusion === 'failure') {
-              core.setFailed('Fix this pipeline by resolving the pull request error');
-            }
           } catch (e) {
             const error = e;
             console.log('personal error: ', error.toString());
