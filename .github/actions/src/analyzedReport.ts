@@ -1,6 +1,5 @@
 import type { ESLintReport, ChecksUpdateParamsOutputAnnotations, AnalyzedESLintReport } from './types';
 import utils from './utils';
-import { GitHub } from '@actions/github/lib/utils';
 const { sha, owner, repo, githubWorkSpace } = utils;
 
 /**
@@ -8,7 +7,6 @@ const { sha, owner, repo, githubWorkSpace } = utils;
  * @returns a report after analyzing an ESLint report JS object.
  */
 export default function getAnalyzedReport(files: ESLintReport): AnalyzedESLintReport {
-  console.log('getAnalyzedReport');
   /**
    * Create markdown placeholder
    */
@@ -30,46 +28,39 @@ export default function getAnalyzedReport(files: ESLintReport): AnalyzedESLintRe
   /**
    * Loop through each file
    */
-  let messageText = ``;
   for (const file of files) {
     /**
      * Get the file path and any warning/error messages
      */
     const { filePath, messages } = file;
     /**
-     * Skip files with no error or warning messages
+     * Skip file if no error or warning messages
      */
-    console.log('messages: ', messages.length);
-
-    if (!messages.length) {
+    if (!messages?.length) {
       continue;
     }
 
     /**
-     * Increment the error and warning counts by
-     * the number of errors/warnings for this file
-     * and note files in the PR
+     * Increment the error and warning counts by the number of errors/warnings
+     * for this file and note files in the PR
      */
-    errorCount += file.errorCount;
-    warningCount += file.warningCount;
+    errorCount += file?.errorCount;
+    warningCount += file?.warningCount;
     /**
      * Loop through all the error/warning messages for the file
      */
-
     for (const lintMessage of messages) {
       /**
        * Pull out information about the error/warning message
        */
-
       const { line, column, severity, ruleId, message } = lintMessage;
       /**
        * If there's no rule ID (e.g. an ignored file warning), skip
        */
-      console.log('ruleId: ', ruleId);
       if (!ruleId) continue;
 
-      const endLine = lintMessage.endLine ? lintMessage.endLine : line;
-      const endColumn = lintMessage.endColumn ? lintMessage.endColumn : column;
+      const endLine = lintMessage?.endLine ? lintMessage?.endLine : line;
+      const endColumn = lintMessage?.endColumn ? lintMessage?.endColumn : column;
       /**
        * Check if it a warning or error
        */
@@ -77,7 +68,7 @@ export default function getAnalyzedReport(files: ESLintReport): AnalyzedESLintRe
       /**
        * Trim the absolute path prefix from the file path
        */
-      const filePathTrimmed: string = filePath.replace(`${githubWorkSpace}/`, '');
+      const filePathTrimmed: string = filePath?.replace(`${githubWorkSpace}/`, '');
       /**
        * Create a GitHub annotation object for the error/warning
        * See https://developer.github.com/v3/checks/runs/#annotations-object
@@ -112,7 +103,7 @@ export default function getAnalyzedReport(files: ESLintReport): AnalyzedESLintRe
        */
       const link = `https://github.com/${owner}/${repo}/blob/${sha}/${filePathTrimmed}#L${line}:L${endLine}`;
 
-      messageText += `| ${filePathTrimmed} | ${line.toString()} | ${endLine.toString()} | ${ruleId} | ${message} |\n`;
+      let messageText = `| [\`${filePathTrimmed}\` line \`${line.toString()}\`](${link}) | ${line.toString()} | ${endLine.toString()} | ${ruleId} | ${message} |\n`;
 
       /**
        * Add the markdown text to the appropriate placeholder
@@ -128,7 +119,6 @@ export default function getAnalyzedReport(files: ESLintReport): AnalyzedESLintRe
    * If there is any markdown error text, add it to the markdown output
    */
   if (errorText.length) {
-    // markdownText += '## ' + errorCount.toString() + ' Error(s):\n';
     markdownText +=
       `\n| File Path | Start Line | End Line | Rule Id | Message |\n|---|---|---|---|---|\n` + errorText + '\n';
   }
@@ -157,49 +147,42 @@ export default function getAnalyzedReport(files: ESLintReport): AnalyzedESLintRe
 }
 
 /**
- *
+ * Get pull request file list
  * @param reportJS
- * @param octokit
- * @param number
+ * @param Octokit instance
+ * @param pullReqNumber
  * @returns
  */
-export async function getPullRequestChangedAnalyzedReport(
-  reportJS: ESLintReport,
-  octokit: InstanceType<typeof GitHub>,
-  number: number
-): Promise<AnalyzedESLintReport> {
-  const { data } = await octokit.rest.pulls.listFiles({
+export async function getPullRequestChangedAnalyzedReport(reportJS: ESLintReport): Promise<AnalyzedESLintReport> {
+  const { data } = await utils?.octokit?.rest?.pulls?.listFiles({
     owner: owner,
     repo: repo,
-    pull_number: number,
+    pull_number: utils?.pullRequest?.number,
   });
-  const changedFiles = data.map((prFiles) => prFiles.filename);
+  const changedFiles = data?.map((prFiles) => prFiles?.filename);
 
-  const pullRequestFilesReportJS: ESLintReport = reportJS.filter((file) => {
-    file.filePath = file.filePath.replace(githubWorkSpace + '/', '');
-    console.log(changedFiles.indexOf(file.filePath), file.filePath);
-    return changedFiles.indexOf(file.filePath) !== -1;
+  const pullRequestFilesReportJS: ESLintReport = reportJS?.filter((file) => {
+    file.filePath = file?.filePath?.replace(githubWorkSpace + '/', '');
+    return changedFiles?.indexOf(file?.filePath) !== -1;
   });
 
-  const nonPullRequestFilesReportJS: ESLintReport = reportJS.filter((file) => {
-    file.filePath = file.filePath.replace(githubWorkSpace + '/', '');
-    return changedFiles.indexOf(file.filePath) === -1;
+  const nonPullRequestFilesReportJS: ESLintReport = reportJS?.filter((file) => {
+    file.filePath = file?.filePath?.replace(githubWorkSpace + '/', '');
+    return changedFiles?.indexOf(file?.filePath) === -1;
   });
-  console.log('pullRequestFilesReportJS: ', pullRequestFilesReportJS);
 
   const analyzedPullRequestReport = getAnalyzedReport(pullRequestFilesReportJS);
-  console.log('analyzedPullRequestReport: ', analyzedPullRequestReport);
-  const combinedSummary = `${analyzedPullRequestReport.summary} in pull request changed files.`;
+  const combinedSummary = `${analyzedPullRequestReport?.summary} in pull request changed files.`;
   const combinedMarkdown = `# Pull Request Changed Files ESLint Results: 
-    **${analyzedPullRequestReport.summary}**
-    ${analyzedPullRequestReport.markdown}
+    **${analyzedPullRequestReport?.summary}**
+    ${analyzedPullRequestReport?.markdown}
   `;
   return {
-    errorCount: analyzedPullRequestReport.errorCount,
-    warningCount: analyzedPullRequestReport.warningCount,
+    errorCount: analyzedPullRequestReport?.errorCount,
+    warningCount: analyzedPullRequestReport?.warningCount,
     markdown: combinedMarkdown,
-    success: analyzedPullRequestReport.success,
+    success: analyzedPullRequestReport?.success,
     summary: combinedSummary,
-    annotations: analyzedPullRequestReport.annotations,
+    annotations: analyzedPullRequestReport?.annotations,
   };
 }

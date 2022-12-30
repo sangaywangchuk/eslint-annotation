@@ -13690,7 +13690,6 @@
        * @returns a report after analyzing an ESLint report JS object.
        */
       function getAnalyzedReport(files) {
-        console.log('getAnalyzedReport');
         /**
          * Create markdown placeholder
          */
@@ -13712,26 +13711,23 @@
         /**
          * Loop through each file
          */
-        let messageText = ``;
         for (const file of files) {
           /**
            * Get the file path and any warning/error messages
            */
           const { filePath, messages } = file;
           /**
-           * Skip files with no error or warning messages
+           * Skip file if no error or warning messages
            */
-          console.log('messages: ', messages.length);
-          if (!messages.length) {
+          if (!(messages === null || messages === void 0 ? void 0 : messages.length)) {
             continue;
           }
           /**
-           * Increment the error and warning counts by
-           * the number of errors/warnings for this file
-           * and note files in the PR
+           * Increment the error and warning counts by the number of errors/warnings
+           * for this file and note files in the PR
            */
-          errorCount += file.errorCount;
-          warningCount += file.warningCount;
+          errorCount += file === null || file === void 0 ? void 0 : file.errorCount;
+          warningCount += file === null || file === void 0 ? void 0 : file.warningCount;
           /**
            * Loop through all the error/warning messages for the file
            */
@@ -13743,10 +13739,17 @@
             /**
              * If there's no rule ID (e.g. an ignored file warning), skip
              */
-            console.log('ruleId: ', ruleId);
             if (!ruleId) continue;
-            const endLine = lintMessage.endLine ? lintMessage.endLine : line;
-            const endColumn = lintMessage.endColumn ? lintMessage.endColumn : column;
+            const endLine = (lintMessage === null || lintMessage === void 0 ? void 0 : lintMessage.endLine)
+              ? lintMessage === null || lintMessage === void 0
+                ? void 0
+                : lintMessage.endLine
+              : line;
+            const endColumn = (lintMessage === null || lintMessage === void 0 ? void 0 : lintMessage.endColumn)
+              ? lintMessage === null || lintMessage === void 0
+                ? void 0
+                : lintMessage.endColumn
+              : column;
             /**
              * Check if it a warning or error
              */
@@ -13754,7 +13757,8 @@
             /**
              * Trim the absolute path prefix from the file path
              */
-            const filePathTrimmed = filePath.replace(`${githubWorkSpace}/`, '');
+            const filePathTrimmed =
+              filePath === null || filePath === void 0 ? void 0 : filePath.replace(`${githubWorkSpace}/`, '');
             /**
              * Create a GitHub annotation object for the error/warning
              * See https://developer.github.com/v3/checks/runs/#annotations-object
@@ -13785,7 +13789,7 @@
              * text for the error/warning
              */
             const link = `https://github.com/${owner}/${repo}/blob/${sha}/${filePathTrimmed}#L${line}:L${endLine}`;
-            messageText += `| ${filePathTrimmed} | ${line.toString()} | ${endLine.toString()} | ${ruleId} | ${message} |\n`;
+            let messageText = `| [\`${filePathTrimmed}\` line \`${line.toString()}\`](${link}) | ${line.toString()} | ${endLine.toString()} | ${ruleId} | ${message} |\n`;
             /**
              * Add the markdown text to the appropriate placeholder
              */
@@ -13800,7 +13804,6 @@
          * If there is any markdown error text, add it to the markdown output
          */
         if (errorText.length) {
-          // markdownText += '## ' + errorCount.toString() + ' Error(s):\n';
           markdownText +=
             `\n| File Path | Start Line | End Line | Rule Id | Message |\n|---|---|---|---|---|\n` + errorText + '\n';
         }
@@ -13826,44 +13829,105 @@
       }
       exports['default'] = getAnalyzedReport;
       /**
-       *
+       * Get pull request file list
        * @param reportJS
-       * @param octokit
-       * @param number
+       * @param Octokit instance
+       * @param pullReqNumber
        * @returns
        */
-      function getPullRequestChangedAnalyzedReport(reportJS, octokit, number) {
+      function getPullRequestChangedAnalyzedReport(reportJS) {
+        var _a, _b, _c, _d;
         return __awaiter(this, void 0, void 0, function* () {
-          const { data } = yield octokit.rest.pulls.listFiles({
-            owner: owner,
-            repo: repo,
-            pull_number: number,
-          });
-          const changedFiles = data.map((prFiles) => prFiles.filename);
-          const pullRequestFilesReportJS = reportJS.filter((file) => {
-            file.filePath = file.filePath.replace(githubWorkSpace + '/', '');
-            console.log(changedFiles.indexOf(file.filePath), file.filePath);
-            return changedFiles.indexOf(file.filePath) !== -1;
-          });
-          const nonPullRequestFilesReportJS = reportJS.filter((file) => {
-            file.filePath = file.filePath.replace(githubWorkSpace + '/', '');
-            return changedFiles.indexOf(file.filePath) === -1;
-          });
-          console.log('pullRequestFilesReportJS: ', pullRequestFilesReportJS);
+          const { data } = yield (_c =
+            (_b =
+              (_a = utils_1.default === null || utils_1.default === void 0 ? void 0 : utils_1.default.octokit) ===
+                null || _a === void 0
+                ? void 0
+                : _a.rest) === null || _b === void 0
+              ? void 0
+              : _b.pulls) === null || _c === void 0
+            ? void 0
+            : _c.listFiles({
+                owner: owner,
+                repo: repo,
+                pull_number:
+                  (_d =
+                    utils_1.default === null || utils_1.default === void 0 ? void 0 : utils_1.default.pullRequest) ===
+                    null || _d === void 0
+                    ? void 0
+                    : _d.number,
+              });
+          const changedFiles =
+            data === null || data === void 0
+              ? void 0
+              : data.map((prFiles) => (prFiles === null || prFiles === void 0 ? void 0 : prFiles.filename));
+          const pullRequestFilesReportJS =
+            reportJS === null || reportJS === void 0
+              ? void 0
+              : reportJS.filter((file) => {
+                  var _a;
+                  file.filePath =
+                    (_a = file === null || file === void 0 ? void 0 : file.filePath) === null || _a === void 0
+                      ? void 0
+                      : _a.replace(githubWorkSpace + '/', '');
+                  return (
+                    (changedFiles === null || changedFiles === void 0
+                      ? void 0
+                      : changedFiles.indexOf(file === null || file === void 0 ? void 0 : file.filePath)) !== -1
+                  );
+                });
+          const nonPullRequestFilesReportJS =
+            reportJS === null || reportJS === void 0
+              ? void 0
+              : reportJS.filter((file) => {
+                  var _a;
+                  file.filePath =
+                    (_a = file === null || file === void 0 ? void 0 : file.filePath) === null || _a === void 0
+                      ? void 0
+                      : _a.replace(githubWorkSpace + '/', '');
+                  return (
+                    (changedFiles === null || changedFiles === void 0
+                      ? void 0
+                      : changedFiles.indexOf(file === null || file === void 0 ? void 0 : file.filePath)) === -1
+                  );
+                });
           const analyzedPullRequestReport = getAnalyzedReport(pullRequestFilesReportJS);
-          console.log('analyzedPullRequestReport: ', analyzedPullRequestReport);
-          const combinedSummary = `${analyzedPullRequestReport.summary} in pull request changed files.`;
+          const combinedSummary = `${
+            analyzedPullRequestReport === null || analyzedPullRequestReport === void 0
+              ? void 0
+              : analyzedPullRequestReport.summary
+          } in pull request changed files.`;
           const combinedMarkdown = `# Pull Request Changed Files ESLint Results: 
-    **${analyzedPullRequestReport.summary}**
-    ${analyzedPullRequestReport.markdown}
+    **${
+      analyzedPullRequestReport === null || analyzedPullRequestReport === void 0
+        ? void 0
+        : analyzedPullRequestReport.summary
+    }**
+    ${
+      analyzedPullRequestReport === null || analyzedPullRequestReport === void 0
+        ? void 0
+        : analyzedPullRequestReport.markdown
+    }
   `;
           return {
-            errorCount: analyzedPullRequestReport.errorCount,
-            warningCount: analyzedPullRequestReport.warningCount,
+            errorCount:
+              analyzedPullRequestReport === null || analyzedPullRequestReport === void 0
+                ? void 0
+                : analyzedPullRequestReport.errorCount,
+            warningCount:
+              analyzedPullRequestReport === null || analyzedPullRequestReport === void 0
+                ? void 0
+                : analyzedPullRequestReport.warningCount,
             markdown: combinedMarkdown,
-            success: analyzedPullRequestReport.success,
+            success:
+              analyzedPullRequestReport === null || analyzedPullRequestReport === void 0
+                ? void 0
+                : analyzedPullRequestReport.success,
             summary: combinedSummary,
-            annotations: analyzedPullRequestReport.annotations,
+            annotations:
+              analyzedPullRequestReport === null || analyzedPullRequestReport === void 0
+                ? void 0
+                : analyzedPullRequestReport.annotations,
           };
         });
       }
@@ -13912,93 +13976,153 @@
           return mod && mod.__esModule ? mod : { default: mod };
         };
       Object.defineProperty(exports, '__esModule', { value: true });
-      exports.onRateLimitingError = exports.createStatusCheck = void 0;
+      exports.onCheckRateLimitingError = exports.createStatusCheck = void 0;
       const inputs_1 = __importDefault(__nccwpck_require__(7063));
       const utils_1 = __importDefault(__nccwpck_require__(1314));
-      const { checkName } = inputs_1.default;
-      const { sha, ownership } = utils_1.default;
       /**
        *
        * @returns current date
        */
       const formatDate = () => {
-        return new Date().toISOString();
+        var _a;
+        return (_a = new Date()) === null || _a === void 0 ? void 0 : _a.toISOString();
       };
       /**
        * Create a new GitHub check run
        * @param octokit octokit.checks.create parameters
        */
-      const createStatusCheck = (octokit) =>
+      const createStatusCheck = () =>
         __awaiter(void 0, void 0, void 0, function* () {
-          const { data } = yield octokit.rest.checks.create(
-            Object.assign(Object.assign({}, ownership), {
-              started_at: formatDate(),
-              head_sha: sha,
-              status: 'in_progress',
-              name: checkName,
-            })
-          );
-          return { checkId: data.id, pullRequest: data.pull_requests || [] };
+          var _a, _b, _c;
+          const { data } = yield (_c =
+            (_b =
+              (_a = utils_1.default === null || utils_1.default === void 0 ? void 0 : utils_1.default.octokit) ===
+                null || _a === void 0
+                ? void 0
+                : _a.rest) === null || _b === void 0
+              ? void 0
+              : _b.checks) === null || _c === void 0
+            ? void 0
+            : _c.create(
+                Object.assign(
+                  Object.assign(
+                    {},
+                    utils_1.default === null || utils_1.default === void 0 ? void 0 : utils_1.default.ownership
+                  ),
+                  {
+                    started_at: formatDate(),
+                    head_sha: utils_1.default === null || utils_1.default === void 0 ? void 0 : utils_1.default.sha,
+                    status: 'in_progress',
+                    name:
+                      inputs_1.default === null || inputs_1.default === void 0 ? void 0 : inputs_1.default.checkName,
+                  }
+                )
+              );
+          return { checkId: data === null || data === void 0 ? void 0 : data.id };
         });
       exports.createStatusCheck = createStatusCheck;
       /**
-       * To an existing GitHub check run, add annotations.
+       * On check rate limiting error.
        * @param octokit octokit.checks.update parameters
-       * @param checkId The check run's ID that you want to annotate
+       * @param checkId the check run's ID that you want to annotate
        * @param conclusion
        * @param annotations an array of annotation objects. See https://developer.github.com/v3/checks/runs/#annotations-object-1
-       * @param status
+       * @param status the current status.
        */
-      const onRateLimitingError = (octokit, checkId, conclusion, annotations, status, text) =>
+      const onCheckRateLimitingError = (checkId, conclusion, report, status) =>
         __awaiter(void 0, void 0, void 0, function* () {
           /**
            * We need to send numerous API queries if there are more than 50 annotations in order to prevent rate limiting errors.
            * See https://developer.github.com/v3/checks/runs/#output-object-1
            */
-          if (annotations === null || annotations === void 0 ? void 0 : annotations.length) {
-            const numberOfAnnotations = annotations.length;
-            const batchSize = 50;
-            const numBatches = Math.ceil(numberOfAnnotations / batchSize);
-            for (let batch = 1; batch <= numBatches; batch++) {
-              const batchMessage = `Found ${numberOfAnnotations} ESLint errors and warnings, processing batch ${batch} of ${numBatches}...`;
-              const annotationBatch = annotations.splice(0, batchSize);
-              status = batch >= numBatches ? 'completed' : 'in_progress';
-              const finalConclusion = status === 'completed' ? conclusion : null;
-              yield updateChecksRun(octokit, checkId, finalConclusion, batchMessage, annotationBatch, status, text);
-            }
-          } else {
-            const message = 'NO ERROR its Ready for merge';
-            yield updateChecksRun(octokit, checkId, conclusion, message, annotations, status);
+          var _d, _e, _f;
+          if (
+            !((_d = report === null || report === void 0 ? void 0 : report.annotations) === null || _d === void 0
+              ? void 0
+              : _d.length)
+          ) {
+            const message = `## Eslint checks successfully completed. No Error and warning!!! \n`;
+            const text =
+              '![This is a alt text.](https://images.selise.club/6add5d48b5e77bc5848e58a35d5cadef.webp "completed.")';
+            yield updateChecksRun(
+              checkId,
+              conclusion,
+              message,
+              report === null || report === void 0 ? void 0 : report.annotations,
+              status,
+              text
+            );
+            return;
+          }
+          const numberOfAnnotations =
+            (_e = report === null || report === void 0 ? void 0 : report.annotations) === null || _e === void 0
+              ? void 0
+              : _e.length;
+          const batchSize = 50;
+          const batchesLimit = Math.ceil(numberOfAnnotations / batchSize);
+          for (let batch = 1; batch <= batchesLimit; batch++) {
+            const batchMessage = `${numberOfAnnotations} ESLint warnings and errors were found in this pull request when processing batch ${batch}.`;
+            const annotationBatch =
+              (_f = report === null || report === void 0 ? void 0 : report.annotations) === null || _f === void 0
+                ? void 0
+                : _f.splice(0, batchSize);
+            status = batch >= batchesLimit ? 'completed' : 'in_progress';
+            const finalConclusion = status === 'completed' ? conclusion : null;
+            yield updateChecksRun(
+              checkId,
+              finalConclusion,
+              batchMessage,
+              annotationBatch,
+              status,
+              report === null || report === void 0 ? void 0 : report.markdown
+            );
           }
         });
-      exports.onRateLimitingError = onRateLimitingError;
+      exports.onCheckRateLimitingError = onCheckRateLimitingError;
       /**
        * Update the GitHub check with the annotations from the report analysis.
-       * @param octokit
-       * @param checkId The ID of the check run to add annotations to
+       * @param octokit instance
+       * @param checkId the check run's ID that you want to annotate
        * @param conclusion
-       * @param summary
-       * @param annotations An array of annotation objects. See https://developer.github.com/v3/checks/runs/#annotations-object-1
-       * @param status
+       * @param summary of the check run
+       * @param annotations an array of annotation objects. See https://developer.github.com/v3/checks/runs/#annotations-object-1
+       * @param status the current status.
        * @returns
        * The check run API is still in beta and the developer preview must be opted into
        * See https://developer.github.com/changes/2018-05-07-new-checks-api-public-beta/
        */
-      const updateChecksRun = (octokit, checkId, conclusion, summary, annotations, status, text) =>
+      const updateChecksRun = (checkId, conclusion, summary, annotations, status, text) =>
         __awaiter(void 0, void 0, void 0, function* () {
-          return yield octokit.rest.checks.update(
-            Object.assign(Object.assign({}, ownership), {
-              check_run_id: checkId,
-              status,
-              conclusion,
-              output: {
-                title: checkName,
-                summary,
-                text,
-                annotations,
-              },
-            })
-          );
+          var _g, _h, _j;
+          return yield (_j =
+            (_h =
+              (_g = utils_1.default === null || utils_1.default === void 0 ? void 0 : utils_1.default.octokit) ===
+                null || _g === void 0
+                ? void 0
+                : _g.rest) === null || _h === void 0
+              ? void 0
+              : _h.checks) === null || _j === void 0
+            ? void 0
+            : _j.update(
+                Object.assign(
+                  Object.assign(
+                    {},
+                    utils_1.default === null || utils_1.default === void 0 ? void 0 : utils_1.default.ownership
+                  ),
+                  {
+                    check_run_id: checkId,
+                    status,
+                    conclusion,
+                    output: {
+                      title:
+                        inputs_1.default === null || inputs_1.default === void 0 ? void 0 : inputs_1.default.checkName,
+                      summary,
+                      text,
+                      annotations,
+                    },
+                  }
+                )
+              );
         });
 
       /***/
@@ -14114,7 +14238,6 @@
         };
       Object.defineProperty(exports, '__esModule', { value: true });
       const core = __importStar(__nccwpck_require__(2186));
-      const github = __importStar(__nccwpck_require__(5438));
       const eslintReportJsonToObject_1 = __importDefault(__nccwpck_require__(1253));
       const inputs_1 = __importDefault(__nccwpck_require__(7063));
       const analyzedReport_1 = __nccwpck_require__(185);
@@ -14123,26 +14246,26 @@
         __awaiter(void 0, void 0, void 0, function* () {
           var _a;
           try {
-            const { token, eslintReportFile } = inputs_1.default;
             /**
              * Eslint report to javascript object conversion
              */
-            const parsedEslintReportJs = (0, eslintReportJsonToObject_1.default)(eslintReportFile);
-            /**
-             * create octokit instance
-             */
-            const octokit = github.getOctokit(token);
-            const { checkId, pullRequest } = yield (0, checksApi_1.createStatusCheck)(octokit);
-            const report = yield (0, analyzedReport_1.getPullRequestChangedAnalyzedReport)(
-              parsedEslintReportJs,
-              octokit,
-              (_a = pullRequest[0]) === null || _a === void 0 ? void 0 : _a.number
+            const parsedEslintReportJs = (0, eslintReportJsonToObject_1.default)(
+              inputs_1.default === null || inputs_1.default === void 0 ? void 0 : inputs_1.default.eslintReportFile
             );
-            const conclusion = report.annotations.length ? (report.success ? 'success' : 'failure') : 'success';
-            yield (0,
-            checksApi_1.onRateLimitingError)(octokit, checkId, conclusion, report.annotations, 'completed', report === null || report === void 0 ? void 0 : report.markdown);
+            const { checkId } = yield (0, checksApi_1.createStatusCheck)();
+            const report = yield (0, analyzedReport_1.getPullRequestChangedAnalyzedReport)(parsedEslintReportJs);
+            const conclusion = (
+              (_a = report === null || report === void 0 ? void 0 : report.annotations) === null || _a === void 0
+                ? void 0
+                : _a.length
+            )
+              ? (report === null || report === void 0 ? void 0 : report.success)
+                ? 'success'
+                : 'failure'
+              : 'success';
+            yield (0, checksApi_1.onCheckRateLimitingError)(checkId, conclusion, report, 'completed');
             if (conclusion === 'failure') {
-              core.setFailed('linting failed fix the issues');
+              core.setFailed('Fix this pipeline by resolving the pull request error');
             }
           } catch (e) {
             const error = e;
@@ -14200,11 +14323,12 @@
       Object.defineProperty(exports, '__esModule', { value: true });
       const core = __importStar(__nccwpck_require__(2186));
       /**
-       * github action inputs
+       * Github action inputs
        */
-      const githubToken = core.getInput('token', { required: true });
-      const checkName = core.getInput('check-name') || 'ESLint Annotation Report Analysis';
-      const eslintReportFile = core.getInput('eslint-report-json', { required: true });
+      const githubToken = core === null || core === void 0 ? void 0 : core.getInput('token', { required: true });
+      const checkName = core === null || core === void 0 ? void 0 : core.getInput('check-name', { required: false });
+      const eslintReportFile =
+        core === null || core === void 0 ? void 0 : core.getInput('eslint-report-json', { required: true });
       exports['default'] = {
         token: githubToken,
         checkName,
@@ -14257,41 +14381,110 @@
           __setModuleDefault(result, mod);
           return result;
         };
+      var __importDefault =
+        (this && this.__importDefault) ||
+        function (mod) {
+          return mod && mod.__esModule ? mod : { default: mod };
+        };
+      var _a, _b, _c, _d, _e, _f, _g, _h;
       Object.defineProperty(exports, '__esModule', { value: true });
       const github = __importStar(__nccwpck_require__(5438));
+      const inputs_1 = __importDefault(__nccwpck_require__(7063));
       const ownership = {
         owner: github.context.repo.owner,
         repo: github.context.repo.repo,
       };
       const prEvents = ['pull_request', 'pull_request_review', 'pull_request_review_comment', 'pull_request_target'];
       const pushEvents = ['push'];
-      const isPullRequest = Object.prototype.hasOwnProperty.call(github.context.payload, 'pull_request');
-      const pullRequest = isPullRequest ? github.context.payload.pull_request : false;
+      const isPullRequest = Object.prototype.hasOwnProperty.call(
+        (_a = github === null || github === void 0 ? void 0 : github.context) === null || _a === void 0
+          ? void 0
+          : _a.payload,
+        'pull_request'
+      );
+      const pullRequest = isPullRequest
+        ? (_c =
+            (_b = github === null || github === void 0 ? void 0 : github.context) === null || _b === void 0
+              ? void 0
+              : _b.payload) === null || _c === void 0
+          ? void 0
+          : _c.pull_request
+        : false;
       /**
        * For Pull request events the last commit is on github.context.payload.pull_request.head.sha
        * For push events the last commit is on github.context.sha
        * @returns github sha
        */
       const getSha = () => {
-        let sha = github.context.sha;
-        if (prEvents.includes(github.context.eventName)) {
-          const pull = github.context.payload.pull_request;
-          sha = pull === null || pull === void 0 ? void 0 : pull.head.sha;
+        var _a, _b, _c, _d, _e, _f, _g;
+        let sha =
+          (_a = github === null || github === void 0 ? void 0 : github.context) === null || _a === void 0
+            ? void 0
+            : _a.sha;
+        if (
+          prEvents.includes(
+            (_b = github === null || github === void 0 ? void 0 : github.context) === null || _b === void 0
+              ? void 0
+              : _b.eventName
+          )
+        ) {
+          const pullReq =
+            (_d =
+              (_c = github === null || github === void 0 ? void 0 : github.context) === null || _c === void 0
+                ? void 0
+                : _c.payload) === null || _d === void 0
+              ? void 0
+              : _d.pull_request;
+          sha =
+            (_e = pullReq === null || pullReq === void 0 ? void 0 : pullReq.head) === null || _e === void 0
+              ? void 0
+              : _e.sha;
         }
-        if (pushEvents.includes(github.context.eventName)) {
-          sha = github.context.sha;
+        if (
+          pushEvents.includes(
+            (_f = github === null || github === void 0 ? void 0 : github.context) === null || _f === void 0
+              ? void 0
+              : _f.eventName
+          )
+        ) {
+          sha =
+            (_g = github === null || github === void 0 ? void 0 : github.context) === null || _g === void 0
+              ? void 0
+              : _g.sha;
         }
         return sha;
+      };
+      const getOctokit = () => {
+        const octokit = github.getOctokit(
+          inputs_1.default === null || inputs_1.default === void 0 ? void 0 : inputs_1.default.token
+        );
+        return octokit;
       };
       exports['default'] = {
         sha: getSha(),
         ownership,
         isPullRequest,
         pullRequest,
-        githubWorkSpace: process.env.GITHUB_WORKSPACE,
-        githubContext: github.context,
-        owner: github.context.repo.owner,
-        repo: github.context.repo.repo,
+        githubWorkSpace:
+          (_d = process === null || process === void 0 ? void 0 : process.env) === null || _d === void 0
+            ? void 0
+            : _d.GITHUB_WORKSPACE,
+        githubContext: github === null || github === void 0 ? void 0 : github.context,
+        owner:
+          (_f =
+            (_e = github === null || github === void 0 ? void 0 : github.context) === null || _e === void 0
+              ? void 0
+              : _e.repo) === null || _f === void 0
+            ? void 0
+            : _f.owner,
+        repo:
+          (_h =
+            (_g = github === null || github === void 0 ? void 0 : github.context) === null || _g === void 0
+              ? void 0
+              : _g.repo) === null || _h === void 0
+            ? void 0
+            : _h.repo,
+        octokit: getOctokit(),
       };
 
       /***/

@@ -33,6 +33,8 @@ jobs:
       - name: Install dependencies
         if: steps.yarn-cache.outputs.cache-hit != 'true'
         run: yarn install
+      - name: Test
+        run: yarn test  
       - name: Generate eslint Report
         run: yarn lint:report
       - name: Annotate Eslint on PR filess

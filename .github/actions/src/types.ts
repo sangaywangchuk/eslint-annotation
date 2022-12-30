@@ -12,6 +12,7 @@ export type Annotations = NonNullable<Output['annotations']>;
 export type Images = NonNullable<Output['images']>;
 
 export type Actions = NonNullable<ChecksCreate['actions']>;
+
 export interface ChecksUpdateParamsOutputAnnotations {
   path: string;
   start_line: number;
@@ -23,6 +24,7 @@ export interface ChecksUpdateParamsOutputAnnotations {
   title?: string;
   raw_details?: string;
 }
+
 export interface ESLintMessage {
   ruleId: string;
   severity: number;
@@ -38,6 +40,7 @@ export interface ESLintMessage {
   };
   messageId?: string;
 }
+
 export interface ESLintEntry {
   filePath: string;
   messages: ESLintMessage[];
@@ -50,6 +53,7 @@ export interface ESLintEntry {
 }
 
 export type ESLintReport = ESLintEntry[];
+
 export interface AnalyzedESLintReport {
   errorCount: number;
   warningCount: number;

@@ -6,7 +6,8 @@
   "scripts": {
     "build": "ncc build src/index.ts -o build/",
     "format": "prettier --write '**/*.js' '**/*.ts'",
-    "build-all": "npm run build && npm run format"
+    "build-all": "npm run build && npm run format",
+    "test": "jest"
   },
   "keywords": [],
   "author": "",
